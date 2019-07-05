@@ -1,0 +1,153 @@
+body {       
+    padding: 20px;
+    background:#D8D8D8 !important;       
+  } 
+  .container {
+    display: inline-block;
+    margin-left: 20px;
+  }
+/*********************************************************************************/
+  
+  .grid-container {
+    display: grid;
+    grid-template: 150px / auto auto auto;
+    grid-gap: 10px;    
+    width: 200px;
+    background-color: #2196F3;
+    padding: 10px;
+  }
+  
+  .grid-container > div {
+    background-color: rgba(255, 255, 255, 0.8);
+    text-align: center;
+    padding: 20px 0;
+    width: 250%;
+    font-size: 20px;
+  }
+
+  .button-firm{
+    display: grid;
+    grid-template: 150px / auto auto auto;
+    grid-gap: 10px;
+    background-color: #2196F3;
+    padding: 10px 0 0 100px;   
+  }
+  .grid-container-2 {
+    display: grid;
+    grid-template: 150px / auto auto auto;
+    grid-gap: 10px;    
+    background-color: #2196F3;
+    padding: 10px;
+  }
+  
+  .grid-container-2 > div {
+    background-color: rgba(255, 255, 255, 0.8);
+    text-align: center;
+    padding: 20px 0;
+    font-size: 20px;
+  }
+  /*******************************************************************/
+  .wrapper {
+    display: grid;
+    grid-template-columns: repeat(12, [col-start] 1fr);
+    grid-gap: 20px;    
+  }
+
+  .item1 {
+    margin: 20px 0 0 5px;
+    height: 150px;
+    width: 90%;    
+    grid-column: col-start / span 5;    
+  }
+  .item2 {
+    position: absolute;
+    margin: 100px 1px 0 315px;
+    width: 55%;
+    height: 470px;    
+    grid-column: col-start 6 / span 8 ;
+    grid-row: 1 / 19;
+  }
+  .item3 {
+    margin: 20px 0 0 5px;
+    width: 300px !important;    
+    grid-column: col-start 1 / span 5;
+    grid-row: 2;
+    position: relative;
+    top: 20px;
+  }
+  .itemh {        
+    position: absolute;
+    width: 60%;
+    height: 95%;   
+    margin: 5px 2px 0px 315px;    
+  }
+  .itemh iframe{
+    position: absolute;
+    right: 0%;        
+    width: 100%;
+    top: 5px;
+    left: -13px;
+    height: 96%;    
+  }
+  .titleDocument{
+      position: relative;
+      font-size: 40%;
+      margin: 80% 0 0 5px;
+      text-align: left;
+  }
+  #button_position {
+      position: relative;
+      margin:  1px 1px 0 250px;
+  }
+  #name_doc {
+    position: absolute;
+    top: 170px;
+    width: 250px;
+    color: #053D68;
+    left: 10px;      
+    font-size: 0.9em;
+    font-weight: bold;
+    text-align: justify;
+    height: auto; 
+  }
+  #left-right {
+      position: absolute;
+      left: 90px;
+  }      
+  .ui.cube.shape{
+      position: relative;
+      width: 50vh;      
+  }
+  #onegrid {
+      position: static;      
+      text-align: left;
+      text-justify: auto;
+  }
+.item b {
+    color:#EFAA35 !important;
+}
+label {
+    color:#EFAA35 !important;
+}
+.field {
+    color: white !important;
+}
+.item span {
+    color: white !important;
+}
+.item{      
+      background: #2B4364 !important;      
+}
+#marca {
+    position: absolute;
+    top: 5px;
+    z-index: 1;        
+}
+h4 {
+    color:  #2B4364 !important;
+}
+div img {
+    position: absolute;    
+    height: 20vh;    
+    image-resolution: 300dpi;
+}

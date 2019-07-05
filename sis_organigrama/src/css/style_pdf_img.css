@@ -1,0 +1,111 @@
+body {       
+    padding: 20px;
+    background:#D8D8D8 !important;       
+  } 
+  .container {
+    display: inline-block;
+    margin-left: 20px;
+  }
+/*********************************************************************************/
+  
+  /*******************************************************************/
+
+  .item3 {
+    position: absolute;
+    top: 50px;
+    left: 4px;
+    width: 25%;    
+  }
+  .itemh {
+    position: fixed;
+    top: 8.5px;
+    left: 30%;    
+    width: 67%;
+    height: 65%;    
+  }
+  #the-canvas {
+      position: absolute;
+      top: 1px;
+      left: 4px;
+      width: 98%;
+      right: 1px;
+      height: 98%;
+      z-index: -1;      
+  }
+  .titleDocument{
+      position: relative;
+      font-size: 40%;
+      margin: 80% 0 0 5px;
+      text-align: left;
+  }
+  #button_position {
+      position: relative;
+      margin:  1px 1px 0 250px;
+  }
+  #name_doc {
+      position: absolute;
+      top: 42px;
+      color: #053D68;
+      left: 7px;      
+      font-size: 0.3em;
+      font-weight: bold;
+      text-align: justify;
+      height: auto;      
+  }
+  #left-right {
+      position: absolute;
+      left: 90px;
+  }      
+  .ui.cube.shape{
+      position: relative;
+      width: 50vh;      
+  }
+  #onegrid {
+      position: static;      
+      text-align: left;
+      text-justify: auto;
+  }
+.item b {
+    color:#EFAA35 !important;
+}
+label {
+    color:#EFAA35 !important;
+}
+.field {
+    color: white !important;
+}
+.item span {
+    color: white !important;
+}
+.item{      
+      background: #2B4364 !important;      
+}
+#marca {
+    position: absolute;
+    top: 1.5px;
+    left: -6px;    
+}
+h4 {
+    color:  #2B4364 !important;
+}
+div img {
+    position: absolute;    
+    height: 5vh;    
+    image-resolution: 300dpi;
+}
+#buttons {
+    position: relative;
+    top: 59%;
+    width: 55%;
+    height: 6%;    
+    left: 33%;    
+}
+#bto-pages {
+    position: absolute;        
+}
+#sin-firm {
+    position: absolute;
+    top: 10px;
+    left: 0mm;
+    z-index: 4;
+}
