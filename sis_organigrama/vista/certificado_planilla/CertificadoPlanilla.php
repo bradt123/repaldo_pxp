@@ -89,30 +89,41 @@ header("content-type: text/javascript; charset=UTF-8");
         oncellclick : function(grid, rowIndex, columnIndex, e) {
             var record = this.store.getAt(rowIndex),
                 fieldName = grid.getColumnModel().getDataIndex(columnIndex); // Get field name
-            if(fieldName == 'control') {                
-                this.cambiarRevision(record);
-                this.id_document_general = record.data.id_documento_wf;                
-                if(this.docPdf.length == 0){
-                    this.pdfGeneradoFirm(record.data);                    
-                }else{
-                    var that = this;                                       
-                    var found = this.docPdf.find(function(e) {                        
-                        return e.name == that.id_document_general;
-                    });                    
-                    if(found == undefined){                        
-                        this.pdfGeneradoFirm(record.data);                        
-                    }else{                        
-                        this.docPdf.forEach(i => {
-                        if (i.name == this.id_document_general ){
-                             this.docPdf.remove(i);                             
-                            }
-                        });
-                        this.reload();
-                    }                    
-                }
+                this.objRec = record.data;
+            if(fieldName == 'control') {
+                this.id_document_general = record.data.id_documento_wf;
+                this.verifyDoc(record);                
+                //this.cambiarRevision(record);                
             }else if(fieldName == 'firma_digital'){                
                 if(record.data.extension != '') this.VisorArchivo(record);                
             }
+        },
+        /* consulta si documento existe en BD */
+        verifyDoc: function (rec){
+            var id_document = rec.data.id_documento_wf;
+            var id_cert_plani = rec.data.id_certificado_planilla;
+            Ext.Ajax.request({
+                url: '../../sis_organigrama/control/CertificadoPlanilla/consulDocument',
+                params:{id_doc: id_document, id_cert_plan:id_cert_plani},
+                success: this.resulVerify,
+                failure: this.conexionFailure,
+                timeout: this.timeout,
+                scope: this
+            })
+        },
+        /*verificamos si el documento ya fu procesado y almacenado en Bd 
+        **en caso de no serlo se procede a genera en documento is este no esta en el
+        **sistea de archivos, caso contrario se captura el documento de la ruta de archivos
+        **/
+        resulVerify:function (resp){
+            
+            var reg = Ext.util.JSON.decode(Ext.util.Format.trim(resp.responseText));
+            console.log('v',reg);
+            if(reg.ROOT.datos.id_doc_pdf == 'void'){
+                this.pdfGeneradoFirm(this.objRec);
+            }else{
+                this.reload();
+            }                        
         },
         cambiarRevision: function(record){            
             var d = record.data;
@@ -189,12 +200,13 @@ header("content-type: text/javascript; charset=UTF-8");
             if(Phx.CP.config_ini.x==1){  			
                 nomRep = Phx.CP.CRIPT.Encriptar(nomRep);
             }
-            url_send_view = `../../../lib/lib_control/Intermediario.php?r=${nomRep}&t=${new Date().toLocaleTimeString()}`;            
+            url_send_view = `../../../lib/lib_control/Intermediario.php?r=${nomRep}&t=${new Date().toLocaleTimeString()}`;
             window.visorPdfVerificado('', url_send_view, false, this.name_first);
         },       
         pdfGeneradoFirm: function (rec) {
+            Phx.CP.loadingShow();
             var that = this;            
-            if(rec.chequeado == 'no' && rec.url ==''){                
+            if(rec.chequeado == 'no' && rec.url ==''){
                 Ext.Ajax.request({
                     url:'../../'+rec.action,
                     params:{'id_proceso_wf':rec.id_proceso_wf, 'action':rec.action},
@@ -202,8 +214,7 @@ header("content-type: text/javascript; charset=UTF-8");
                     failure: this.conexionFailure,
                     timeout:this.timeout,
                     scope:this
-                });
-                this.reload();                                
+                });                     
             }else{                
                 var data = "id=" + rec['id_documento_wf'];
                 data += "&extension=" + rec['extension'];
@@ -211,25 +222,43 @@ header("content-type: text/javascript; charset=UTF-8");
                 data += "&clase=CertificadoPlanilla";
                 data += "&url="+rec['url'];                
 
-                url_send_view = `../../../lib/lib_control/CTOpenFile.php?${data}`;                
+                url_send_view = `../../../lib/lib_control/CTOpenFile.php?${data}`;                                
                 var num_int = fetch(url_send_view).then(response => response.arrayBuffer()).then(function(data){                
-                that.fileSaveurl(window.arrayBufferToBase64(data));
-                });
+                var buffer = window.arrayBufferToBase64(data);
+                //that.fileSaveurl(window.arrayBufferToBase64(data));
+                that.savebase64DB(buffer, this.id_document_general);
+                });                 
             }             
-        },    
-        firmPdf:function(resp){                    
+        },
+        firmPdf:function(resp){            
             var that = this;            
-            var objRes = Ext.util.JSON.decode(Ext.util.Format.trim(resp.responseText));            
+            var objRes = Ext.util.JSON.decode(Ext.util.Format.trim(resp.responseText));
             var nomRep = objRes.ROOT.detalle.archivo_generado;            
             if(Phx.CP.config_ini.x==1){  			
         	    nomRep = Phx.CP.CRIPT.Encriptar(nomRep);
             }
-            var url = '../../../lib/lib_control/Intermediario.php?r='+nomRep+'&t='+new Date().toLocaleTimeString();            
+            var url = `../../../lib/lib_control/Intermediario.php?r=${nomRep}&t=${new Date().toLocaleTimeString()}`;     
             const fet = fetch(url).then(response => response.arrayBuffer()).then( (data) => {
-                that.fileSaveurl(window.arrayBufferToBase64(data));
+                var buffer = window.arrayBufferToBase64(data);                
+                that.savebase64DB(buffer, this.id_document_general);
             });            
-        }, 
-        fileSaveurl:function(base){                        
+        },
+        savebase64DB:function(buffer, id_docw){            
+            Ext.Ajax.request({
+                    url:'../../sis_organigrama/control/CertificadoPlanilla/saveDocumentoToSing',
+                    params:{'pdf':buffer, codigo:'certificado_trabajo_sis_orga', 'id_documento_wf':id_docw},
+                    success: this.respuesta,
+                    failure: this.conexionFailure,
+                    timeout:this.timeout,
+                    scope:this
+                });                
+        },
+        respuesta:function(data){
+            Phx.CP.loadingHide();
+            var reg = Ext.util.JSON.decode(Ext.util.Format.trim(data.responseText));            
+            console.log('freee',reg);
+        },        
+        fileSaveurl:function(base){              
             this.docPdf.push(
                 {             
                 base64: `data:application/pdf;base64,${base}`,

@@ -227,8 +227,22 @@ class ACTCertificadoPlanilla extends ACTbase{
         $this->res=$this->objFunc->getDocument($this->objParam);
         echo $this->res;
 		//$this->res->imprimirRespuesta($this->res->generarJson());
-    }        
-
+    } 
+    function consulDocument() {                               
+        $this->objFunc=$this->create('MODCertificadoPlanilla');
+        $this->res=$this->objFunc->consulDocument($this->objParam);        
+		$this->res->imprimirRespuesta($this->res->generarJson());
+    }           
+    function saveDocumentoToSing(){
+        $this->objFunc=$this->create('MODCertificadoPlanilla');
+        $this->res=$this->objFunc->saveDocumentoToSing($this->objParam);        
+		$this->res->imprimirRespuesta($this->res->generarJson());
+    }
+    function getUrlFirm(){
+        $this->objFunc=$this->create('MODCertificadoPlanilla');
+        $this->res=$this->objFunc->getUrlFirm($this->objParam);        
+		$this->res->imprimirRespuesta($this->res->generarJson());        
+    }
 }
 
 ?>

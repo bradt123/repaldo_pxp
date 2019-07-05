@@ -11,7 +11,7 @@ header("content-type: text/javascript; charset=UTF-8");
 ?>
 <style>
 .button-firm-digital{    
-    background-image: url('../../../lib/imagenes/icono_awesome/sign.png'); 
+    background-image: url('../../../lib/imagenes/icono_awesome/usbl.jpg'); 
     background-repeat: no-repeat; 
     filter: saturate(250%);
     background-size: 55%;    
@@ -26,7 +26,8 @@ header("content-type: text/javascript; charset=UTF-8");
                 this.name_first = '';
                 this.url_g = '';
                 this.url_send_view;
-                this.id_document_general;                
+                this.id_document_general;
+                this.objRec;
                 //llama al constructor de la clase padre
                 Phx.vista.Certificado.superclass.constructor.call(this,config);
                 this.init();
@@ -783,47 +784,53 @@ header("content-type: text/javascript; charset=UTF-8");
                 timeout : this.timeout,
                 scope : this
             });
-            this.docPdf.forEach(i => {
-                    i.name == id && this.docPdf.remove(i);
-                });
         },
 
         fileSavepdf:function(resp){            
             var reg = Ext.util.JSON.decode(Ext.util.Format.trim(resp.responseText));
-            if(this.docPdf.length == 0) this.reload();            
+            if(!reg.ROOT.error) this.reload();            
         },
         FirmaDigital:function(){
-            console.log(this.docPdf);
-        },
-        FirmaDigitals: function() {
-            console.log('window',this.docPdf);                      
-        if (this.docPdf.length > 0) {
-            var that = this;                        
-            return axios({
-                url: 'https://localhost:4637/sign',
-                method: 'post',
-                timeout: 1800000, 
-                data: {
-                format: 'pades',
-                archivo: this.docPdf
-                },
-            },that)
-            .then(function(response) {                
-                console.log('devuelta',response);
-                var files = response.data.files;
-                if (files.length >= 1) {
-                    files.forEach(data =>{                
-                        var decoded = data.base64;
-                        var name = data.name;
-                        that.saveDocumentpdf(decoded, name, 'boa_firma_digital');                
-                    });                   
-                } else {
-                throw new Error("No se pudo firmar archivos");
+            Ext.Ajax.request({                
+                url: '../../sis_organigrama/control/CertificadoPlanilla/getUrlFirm',                
+                success : this.sentToSingDigital,
+                failure : this.conexionFailure,
+                params:{codigo:'certificado_trabajo_sis_orga'},                
+                timeout : this.timeout,
+                scope : this
+            });            
+        },    
+        sentToSingDigital: function(resp) {
+            var reg = Ext.util.JSON.decode(Ext.util.Format.trim(resp.responseText));
+            let listPdfBase64 = reg.datos;
+            console.log('lista => ',listPdfBase64);                        
+            if (listPdfBase64.length > 0) {
+                var that = this;                        
+                return axios({
+                    url: 'https://localhost:4637/sign',
+                    method: 'post',
+                    timeout: 1800000, 
+                    data: {
+                    format: 'pades',
+                    archivo: listPdfBase64
+                    },
+                },that)
+                .then(function(response) {                
+                    console.log('respuesta',response);
+                    var files = response.data.files;
+                    if (files.length >= 1) {
+                        files.forEach(data =>{                
+                            var decoded = data.base64;
+                            var name = data.name;
+                            that.saveDocumentpdf(decoded, name, 'boa_firma_digital');                
+                        });                   
+                    } else {
+                    throw new Error("No se pudo firmar archivos");
+                    }
+                })
+                .catch(console.error);
                 }
-            })
-            .catch(console.error);
-            }
-        }        
+            }        
     })
 </script>
 

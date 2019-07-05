@@ -58,12 +58,12 @@ BEGIN
                     INNER JOIN orga.vfuncionario fun on fun.id_funcionario = tf.id_funcionario
                     WHERE tu.id_usuario = p_id_usuario;
                IF  (p_administrador)  THEN
-				v_filtro = ' 0=0 and ';
-          elsif (v_parametros.tipo_interfaz ='CertificadoPlanilla')then
-			v_filtro = ' 0=0 and ';
-          elsif (v_parametros.tipo_interfaz = 'CertificadoEmitido') THEN
-         v_filtro ='planc.estado in (''emitido'') and w.id_funcionario ='||v_usuario.id_funcionario||' and';
-     END IF;
+					v_filtro = ' 0=0 and ';
+               elsif (v_parametros.tipo_interfaz ='CertificadoPlanilla')then
+                    v_filtro = ' 0=0 and ';
+               elsif (v_parametros.tipo_interfaz = 'CertificadoEmitido') THEN
+                   v_filtro ='planc.estado in (''emitido'') and w.id_funcionario ='||v_usuario.id_funcionario||' and';         
+               END IF;
 		--Sentencia de la consulta
 			v_consulta:='select
                               planc.id_certificado_planilla,
@@ -108,10 +108,26 @@ BEGIN
                               pe.expedicion,
                               planc.impreso,
                               planc.impreso as control,
-                              planc.nro_factura as factura
+                              planc.nro_factura as factura,
+                              dw.url,
+                              td.action,
+                              dw.id_documento_wf,
+                              dw.firma_digital,
+                              td.nombre,
+                              td.extension,
+                              case when ( select h.estado_reg
+                              from wf.tdocumento_historico_wf h
+                              inner join wf.tdocumento_wf d on d.id_documento_wf=h.id_documento
+                              where d.id_proceso_wf= planc.id_proceso_wf 
+                              limit 1) = ''activo'' then 
+                              ''si''
+                              else 
+                              ''no''
+                              end as habilitado,
+                              dw.chequeado
                               from orga.tcertificado_planilla planc
                               inner join segu.tusuario usu1 on usu1.id_usuario = planc.id_usuario_reg
-                              inner join orga.vfuncionario_cargo fun on fun.id_funcionario = planc.id_funcionario and (fun.fecha_finalizacion is null or fun.fecha_finalizacion >= now() or fun.fecha_finalizacion >= ''20/12/2017'')
+                              inner join orga.vfuncionario_cargo fun on fun.id_funcionario = planc.id_funcionario and (fun.fecha_finalizacion is null or fun.fecha_finalizacion >= now())
                               inner join orga.tcargo car on car.id_cargo = fun.id_cargo and (car.fecha_fin is null or car.fecha_fin >= now()) and car.estado_reg = ''activo''
 							  inner join orga.tuo_funcionario ufun on ufun.id_cargo = car.id_cargo and ufun.tipo=''oficial''  and ufun.id_funcionario= planc.id_funcionario
                               inner join orga.tescala_salarial es on es.id_escala_salarial =car.id_escala_salarial
@@ -119,11 +135,14 @@ BEGIN
                               inner join segu.tpersona pe on pe .id_persona = fon.id_persona
                               inner join wf.testado_wf w on w.id_estado_wf = planc.id_estado_wf
                               left join segu.tusuario usu2 on usu2.id_usuario = planc.id_usuario_mod
+                              inner join wf.tdocumento_wf dw on dw.id_proceso_wf = planc.id_proceso_wf and dw.id_estado_ini is not null 
+                              inner join wf.ttipo_documento td on td.id_tipo_documento = dw.id_tipo_documento and td.codigo = ''CERT''
                               where  '||v_filtro;
 
 			--Definicion de la respuesta
 			v_consulta:=v_consulta||v_parametros.filtro;
 			v_consulta:=v_consulta||' order by ' ||v_parametros.ordenacion|| ' ' || v_parametros.dir_ordenacion || ' limit ' || v_parametros.cantidad || ' offset ' || v_parametros.puntero;
+            			raise notice 'cosulta...%',v_parametros.filtro;
 			raise notice 'cosulta...%',v_consulta;
 			--Devuelve la respuesta
 			return v_consulta;
@@ -160,7 +179,7 @@ BEGIN
 
                       from orga.tcertificado_planilla planc
                             inner join segu.tusuario usu1 on usu1.id_usuario = planc.id_usuario_reg
-                            inner join orga.vfuncionario_cargo fun on fun.id_funcionario = planc.id_funcionario and (fun.fecha_finalizacion is null or fun.fecha_finalizacion >= now() or fun.fecha_finalizacion >= ''20/12/2017'')
+                            inner join orga.vfuncionario_cargo fun on fun.id_funcionario = planc.id_funcionario and (fun.fecha_finalizacion is null or fun.fecha_finalizacion >= now())
                             inner join orga.tcargo car on car.id_cargo = fun.id_cargo and (car.fecha_fin is null or car.fecha_fin >= now()) and car.estado_reg = ''activo''
 							inner join orga.tuo_funcionario ufun on ufun.id_cargo = car.id_cargo and ufun.tipo=''oficial''  and ufun.id_funcionario= planc.id_funcionario
                             inner join orga.tescala_salarial es on es.id_escala_salarial =car.id_escala_salarial
@@ -168,12 +187,15 @@ BEGIN
                             inner join segu.tpersona pe on pe .id_persona = fon.id_persona
                             inner join wf.testado_wf w on w.id_estado_wf = planc.id_estado_wf
                             left join segu.tusuario usu2 on usu2.id_usuario = planc.id_usuario_mod
+                            inner join wf.tdocumento_wf dw on dw.id_proceso_wf = planc.id_proceso_wf and dw.id_estado_ini is not null 
+                            inner join wf.ttipo_documento td on td.id_tipo_documento = dw.id_tipo_documento and td.codigo = ''CERT''
 					    where '||v_filtro;
 
 			--Definicion de la respuesta
 			v_consulta:=v_consulta||v_parametros.filtro;
 
 			--Devuelve la respuesta
+            
 			return v_consulta;
 
 		end;
@@ -195,13 +217,15 @@ BEGIN
             from  orga.tcertificado_planilla
             where id_proceso_wf = v_parametros.id_proceso_wf;
 
-    	if (v_impreso = 'si') then
+    	/*if (v_impreso = 'si') then
         raise exception 'El Certificado ya fue impreso';
         else
-      	update orga.tcertificado_planilla  set
-		impreso = v_parametros.impreso
-        where id_proceso_wf = v_parametros.id_proceso_wf;
-       	end if;
+        	if(pxp.f_existe_parametro(p_tabla,'impreso')) then 
+              /*update orga.tcertificado_planilla  set
+              impreso = v_parametros.impreso
+              where id_proceso_wf = v_parametros.id_proceso_wf;*/
+            end if;
+       	end if;*/
 
         select orga.f_iniciales_funcionarios(p.desc_funcionario1)
         into
@@ -217,7 +241,7 @@ BEGIN
         from wf.testado_wf w
         inner join wf.ttipo_estado e on e.id_tipo_estado = w.id_tipo_estado
         inner join orga.vfuncionario f on f.id_funcionario = w.id_funcionario
-        where e.codigo = 'emitido' and w.id_proceso_wf = v_parametros.id_proceso_wf;
+        where e.codigo = 'pendiente_firma' and w.id_proceso_wf = v_parametros.id_proceso_wf;
 
 
         v_consulta:='select  initcap (fu.desc_funcionario1) as  nombre_funcionario,
@@ -278,7 +302,9 @@ BEGIN
                               '''||COALESCE (v_iniciales,'NA')||'''::varchar as iniciales,
                                '''||COALESCE (v_fun_emetido,'NA')||'''::varchar as fun_imitido,
                                c.estado,
-                               ca.codigo as nro_item
+                               ca.codigo as nro_item,
+                               c.id_proceso_wf,
+                               dw.id_documento_wf
                               from orga.tcertificado_planilla c
                               inner join orga.vfuncionario_cargo  fu on fu.id_funcionario = c.id_funcionario and( fu.fecha_finalizacion is null or  fu.fecha_finalizacion >= now())
                               inner join orga.tcargo ca on ca.id_cargo = fu.id_cargo
@@ -288,8 +314,11 @@ BEGIN
                               inner join orga.tfuncionario fun on fun.id_funcionario = fu.id_funcionario
                               inner join segu.tpersona pe on pe.id_persona = fun.id_persona
                               JOIN orga.tuo ger ON ger.id_uo = orga.f_get_uo_gerencia(fu.id_uo, NULL::integer, NULL::date)
+                              inner join wf.tdocumento_wf dw on dw.id_proceso_wf = c.id_proceso_wf
+                              inner join wf.ttipo_documento td on td.id_tipo_documento = dw.id_tipo_documento and td.codigo = ''CERT''
                               where c.id_proceso_wf ='||v_parametros.id_proceso_wf;
 			--Devuelve la respuesta
+            raise notice '%',v_consulta;
 			return v_consulta;
 
 		end;
@@ -444,6 +473,34 @@ BEGIN
 
 
 		end;
+        
+    /*********************************
+ 	#TRANSACCION:  'OR_GET_URL_DOC'
+ 	#DESCRIPCION:	recupera el la url del documento
+ 	#AUTOR:	
+ 	#FECHA:	
+	***********************************/
+    elseif(p_transaccion='OR_GET_URL_DOC') then
+    	begin
+		v_consulta:='    
+        select dw.url,
+               dw.id_documento_wf,
+               dw.extension,
+               substr(dw.url, 52)::varchar as pdf,
+               td.action,
+               dw.firma_digital,
+               dw.chequeado
+        from wf.tdocumento_wf dw 
+        inner join wf.ttipo_documento td on td.id_tipo_documento = dw.id_tipo_documento
+        where dw.id_proceso_wf = '|| v_parametros.id_proceso_wf||'
+        and dw.id_documento_wf = '||v_parametros.id_documento_wf;
+        
+         raise notice '%',v_consulta;
+        --and dw.id_documento_wf = 632750';
+		--Devuelve la respuesta
+        return v_consulta;
+
+	end;        
 
 	else
 
@@ -465,4 +522,8 @@ LANGUAGE 'plpgsql'
 VOLATILE
 CALLED ON NULL INPUT
 SECURITY INVOKER
+PARALLEL UNSAFE
 COST 100;
+
+ALTER FUNCTION orga.ft_certificado_planilla_sel (p_administrador integer, p_id_usuario integer, p_tabla varchar, p_transaccion varchar)
+  OWNER TO postgres;

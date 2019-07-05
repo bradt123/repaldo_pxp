@@ -60,6 +60,7 @@ DECLARE
     v_funcionario	varchar;
     v_impreso 		varchar;
     v_bo			integer;
+    v_url			varchar;
 
 BEGIN
 
@@ -343,7 +344,7 @@ BEGIN
                   inner join wf.tdocumento_wf d on d.id_documento_wf=h.id_documento
                   where d.id_proceso_wf= v_parametros.id_proceso_wf_act)then
 		v_bo =1;
-        ELSE
+        ELSE 
         v_bo =0;
         end if;
 
@@ -572,11 +573,113 @@ BEGIN
 
  		v_resp = pxp.f_agrega_clave(v_resp,'mensaje','Revision con exito (id_certificado_planilla'||v_parametros.id_certificado_planilla||')');
         v_resp = pxp.f_agrega_clave(v_resp,'id_certificado_planilla',v_parametros.id_certificado_planilla::varchar);
+        v_resp = pxp.f_agrega_clave(v_resp,'check',v_impreso::varchar);
 
 		--Devuelve la respuesta
         return v_resp;
 
 	end;
+
+     /*********************************
+ 	#TRANSACCION:  'OR_SIGUE_EMIFIRM'
+ 	#DESCRIPCION:	Siguiente estado certificado de trabajo firmado digitalmente
+ 	#AUTOR:		
+ 	#FECHA:		
+	***********************************/
+    elseif(p_transaccion='OR_SIGUE_EMIFIRM') then
+    	begin
+
+          --recupera el registro de la CVPN          
+          select pla.*
+          into v_registo
+          from wf.tdocumento_wf dw 
+          inner join orga.tcertificado_planilla pla on pla.id_proceso_wf = dw.id_proceso_wf
+          where dw.id_documento_wf = v_parametros.id_doc_wf;
+
+          SELECT
+            ew.id_tipo_estado ,
+            te.pedir_obs,
+            ew.id_estado_wf
+           into
+            v_id_tipo_estado,
+            v_pedir_obs,
+            v_id_estado_wf
+          FROM wf.testado_wf ew
+          INNER JOIN wf.ttipo_estado te ON te.id_tipo_estado = ew.id_tipo_estado
+          WHERE ew.id_estado_wf =  v_registo.id_estado_wf;
+	
+           -- obtener datos tipo estado siguiente
+             v_codigo_estado_siguiente = 'emitido';
+
+           IF  pxp.f_existe_parametro(p_tabla,'id_depto_wf') THEN
+           	 v_id_depto = v_parametros.id_depto_wf;
+           END IF;
+
+           IF  pxp.f_existe_parametro(p_tabla,'obs') THEN
+           	 v_obs = v_parametros.obs;
+           ELSE
+           	 v_obs='---';
+           END IF;
+
+             --configurar acceso directo para la alarma
+             v_acceso_directo = '';
+             v_clase = '';
+             v_parametros_ad = '';
+             v_tipo_noti = 'notificacion';
+             v_titulo  = 'Emitido';
+
+
+             IF   v_codigo_estado_siguiente not in('borrador')   THEN
+
+                  v_acceso_directo = '../../../sis_organigrama/vista/certificado_planilla/CertificadoPlanilla.php';
+             	  v_clase = 'CertificadoPlanilla';
+                  v_parametros_ad = '{filtro_directo:{campo:"cvpn.id_proceso_wf",valor:"'||1104::varchar||'"}}';
+                  v_tipo_noti = 'notificacion';
+                  v_titulo  = 'Notificacion';
+             END IF;
+
+
+             -- hay que recuperar el supervidor que seria el estado inmediato...
+            	v_id_estado_actual =  wf.f_registra_estado_wf(898,
+                                                             56,
+                                                             v_id_estado_wf,
+                                                             v_registo.id_proceso_wf,
+                                                             p_id_usuario,
+                                                             v_parametros._id_usuario_ai,
+                                                             v_parametros._nombre_usuario_ai,
+                                                             v_id_depto,
+                                                             COALESCE(v_registo.nro_tramite,'--')||' Obs:'||v_obs,
+                                                             v_acceso_directo ,
+                                                             v_clase,
+                                                             v_parametros_ad,
+                                                             v_tipo_noti,
+                                                             v_titulo);
+
+
+
+         		IF orga.f_procesar_estados_certificado(p_id_usuario,
+           									v_parametros._id_usuario_ai,
+                                            v_parametros._nombre_usuario_ai,
+                                            v_id_estado_actual,
+                                            v_registo.id_proceso_wf,
+                                            v_codigo_estado_siguiente) THEN
+
+         			RAISE NOTICE 'PASANDO DE ESTADO';
+
+          		END IF;
+          
+              delete from firmdig.tdocumento_firm_dig 
+              where id_documento_wf = v_parametros.id_doc_wf;      
+
+          -- si hay mas de un estado disponible  preguntamos al usuario
+          v_resp = pxp.f_agrega_clave(v_resp,'mensaje','Se realizo el cambio de estado del Reclamo)');
+          v_resp = pxp.f_agrega_clave(v_resp,'operacion','cambio_exitoso');
+          v_resp = pxp.f_agrega_clave(v_resp,'v_codigo_estado_siguiente',v_codigo_estado_siguiente);
+
+          -- Devuelve la respuesta
+          return v_resp;
+        end; 
+           
 	else
 
     	raise exception 'Transaccion inexistente: %',p_transaccion;
@@ -598,4 +701,8 @@ LANGUAGE 'plpgsql'
 VOLATILE
 CALLED ON NULL INPUT
 SECURITY INVOKER
+PARALLEL UNSAFE
 COST 100;
+
+ALTER FUNCTION orga.ft_certificado_planilla_ime (p_administrador integer, p_id_usuario integer, p_tabla varchar, p_transaccion varchar)
+  OWNER TO postgres;

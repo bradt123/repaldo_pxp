@@ -442,7 +442,59 @@ class MODCertificadoPlanilla extends MODbase{
         $resp = $contents;        
         return  $resp;  
     }    
+    function consulDocument() {
+		//Definicion de variables para ejecucion del procedimiento
+		$this->procedimiento='firmdig.ft_documents_firm_ime';
+		$this->transaccion='FIRMDIG_VERIFY_IME';
+		$this->tipo_procedimiento='IME';        
+        
+        $this->setParametro('id_doc', 'id_doc', 'integer');
+        $this->setParametro('id_cert_plan','id_cert_plan','integer');
+		//Define los parametros para la funcion		
+		//Ejecuta la instruccion
+        $this->armarConsulta();        
+		$this->ejecutarConsulta();
 
+		//Devuelve la respuesta
+		return $this->respuesta;         
+    }    
+    function saveDocumentoToSing(){
+		//Definicion de variables para ejecucion del procedimiento
+		$this->procedimiento='firmdig.ft_documents_firm_ime';
+		$this->transaccion='FIRM_INS_IME';
+		$this->tipo_procedimiento='IME';
+				
+		//Define los parametros para la funcion        
+        $this->setParametro('pdf', 'pdf', 'text');
+        $this->setParametro('codigo', 'codigo', 'varchar');
+		$this->setParametro('id_documento_wf','id_documento_wf','integer');
+		
+		//Ejecuta la instruccion
+		$this->armarConsulta();
+		$this->ejecutarConsulta();
+
+		//Devuelve la respuesta
+		return $this->respuesta;        
+    }
+    function getUrlFirm() {
+		//Definicion de variables para ejecucion del procedimiento
+		$this->procedimiento='firmdig.ft_documents_firm_sel';
+		$this->transaccion='FIRMDIG_GETURL_SEL';
+		$this->tipo_procedimiento='SEL';
+        $this->setCount(false);
+        
+        $this->setParametro('codigo', 'codigo', 'varchar');
+        //Define los parametros para la funcion        
+        $this->captura('base64', 'text');	
+        $this->captura('name','integer');	
+		
+		//Ejecuta la instruccion
+        $this->armarConsulta();        
+		$this->ejecutarConsulta();
+
+		//Devuelve la respuesta
+		return $this->respuesta;         
+    }
 
 }
 ?>
