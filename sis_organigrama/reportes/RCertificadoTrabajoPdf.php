@@ -8,7 +8,7 @@ class RCertificadoTrabajoPdf extends  ReportePDF{
         $this->Image($img_file, 7, 10, 90, 500, '', '', '', false, 300, '', false, false, 0);
         $this->Image($img_agua, 130, 150, 80, 80, '', '', '', false, 300, '', false, false, 0);
     }
-    function setDatos($datos) {
+    function setDatos($datos) {            
         $this->datos = $datos;    
     }
     function reporteGeneral(){
@@ -24,11 +24,13 @@ class RCertificadoTrabajoPdf extends  ReportePDF{
             $tra = 'trabajadora';
             $tipol = 'a la interesada';
         }
+        
         $proceso = $this->datos[0]['id_proceso_wf']; 
         $documento = $this->datos[0]['id_documento_wf'];
         //$link = $_SERVER['HTTP_HOST'].'/'.ltrim($_SESSION["_FOLDER"], '/').'sis_organigrama/control/LecturaQrFirmDigBoa.php?p='.$proceso.'&d='.$documento;
 		$link = 'http://10.150.0.91/kerp_breydi/sis_organigrama/control/LecturaQrFirmDigBoa.php?p='.$proceso.'&d='.$documento.'';
-        $cadena = 'Numero Tramite: '.$this->datos[0]['nro_tramite']."\n".'Fecha Solicitud: '.$this->datos[0]['fecha_solicitud']."\n".'Funcionario: '.$this->datos[0]['nombre_funcionario']."\n".'Firmado Por: '.$this->datos[0]['jefa_recursos']."\n".'Emitido Por: '.$this->datos[0]['fun_imitido']."\n"."Enlace Verficacion Firma Digital:".$link;
+        //$cadena = 'Numero Tramite: '.$this->datos[0]['nro_tramite']."\n".'Fecha Solicitud: '.$this->datos[0]['fecha_solicitud']."\n".'Funcionario: '.$this->datos[0]['nombre_funcionario']."\n".'Firmado Por: '.$this->datos[0]['jefa_recursos']."\n".'Emitido Por: '.$this->datos[0]['fun_imitido']."\n"."Enlace Verficacion Firma Digital:".$link;
+        $cadena = 'Numero Tramite: '.$this->datos[0]['nro_tramite']."\n".'Fecha Solicitud: '.$this->datos[0]['fecha_solicitud']."\n".'Funcionario: '.$this->datos[0]['nombre_funcionario']."\n".'Firmado Por: '.$this->datos[0]['jefa_recursos']."\n"."Enlace Verficacion Firma Digital:".$link;
         $barcodeobj = new TCPDF2DBarcode($cadena, 'QRCODE,M');
             $this->html.='<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
 					   "http://www.w3.org/TR/html4/strict.dtd">
@@ -82,7 +84,7 @@ class RCertificadoTrabajoPdf extends  ReportePDF{
         }
         $this->html.='<tr>
 <td>&nbsp;</td>
-<td align="justify"><FONT FACE="Century Gothic" style="font-size: 12pt;">Es cuando se certifica, para fines de derecho que convengan '.$tipol.'.<br><br>Cochabamba '.$this->obtenerFechaEnLetra($this->datos[0]['fecha_solicitud']).'.</FONT>
+<td align="justify"><FONT FACE="Century Gothic" style="font-size: 12pt;"><br><br>Es cuanto se certifica, para fines de derecho que convengan '.$tipol.'.<br><br>Cochabamba '.$this->obtenerFechaEnLetra($this->datos[0]['fecha_solicitud']).'.</FONT>
 </td>
 <td>&nbsp;</td>
 </tr>

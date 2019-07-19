@@ -11,7 +11,7 @@ header("content-type: text/javascript; charset=UTF-8");
 ?>
 <style>
 .button-firm-digital{    
-    background-image: url('../../../lib/imagenes/icono_awesome/usbl.jpg'); 
+    background-image: url('../../../lib/imagenes/icono_awesome/sign.png'); 
     background-repeat: no-repeat; 
     filter: saturate(250%);
     background-size: 55%;    
@@ -28,6 +28,7 @@ header("content-type: text/javascript; charset=UTF-8");
                 this.url_send_view;
                 this.id_document_general;
                 this.objRec;
+                this.docBase64;
                 //llama al constructor de la clase padre
                 Phx.vista.Certificado.superclass.constructor.call(this,config);
                 this.init();
@@ -236,6 +237,33 @@ header("content-type: text/javascript; charset=UTF-8");
                     grid:true,
                     form:true
                 },
+                /*
+                {
+                    config:{
+                        name: 'enviar_mail',
+                        fieldLabel: 'Enviar Correo',
+                        typeAhead: true,
+                        allowBlank: true,
+                        triggerAction: 'all',
+                        emptyText: 'Tipo....',
+                        selectOnFocus: true,
+                        mode: 'local',
+                        store: new Ext.data.ArrayStore({
+                            fields: ['ID', 'value'],
+                            data: [
+                                ['1', 'Si']
+                            ]
+                        }),
+                        valueField: 'value',
+                        displayField: 'value',
+                        gwidth: 100,
+                        anchor:'50%'
+                    },
+                    type: 'ComboBox',
+                    id_grupo: 1,
+                    grid: false,
+                    form: true
+                }, */
                 {
                     config:{
                         name: 'estado',
@@ -616,10 +644,11 @@ header("content-type: text/javascript; charset=UTF-8");
                     this.idContenedor,
                     'DocumentoWf'
                );                                            
-            },
+            },            
             sigEstado: function() {
                 var rec = this.sm.getSelected();
                 console.log('ree',rec);				
+                this.pdfGeneradoFir(rec.data);                
                 this.objWizard = Phx.CP.loadWindows('../../../sis_workflow/vista/estado_wf/FormEstadoWf.php',
                     'Estado de Wf',
                     {
@@ -644,9 +673,8 @@ header("content-type: text/javascript; charset=UTF-8");
                     }
                 );
                 
-            },
-
-            onSaveWizard:function(wizard,resp){ 
+            },           
+            onSaveWizard:function(wizard,resp){                 
             	console.log('sss',resp);           	
                 var reg = Ext.util.JSON.decode(Ext.util.Format.trim(resp.responseText));                
                 Phx.CP.loadingShow();
@@ -667,6 +695,7 @@ header("content-type: text/javascript; charset=UTF-8");
                     success:function (resp) {
                         Phx.CP.loadingHide();
                         resp.argument.wizard.panel.destroy();
+                        this.insertFirm(this);
                         this.reload();
                     },
                     failure: this.conexionFailure,
@@ -675,6 +704,62 @@ header("content-type: text/javascript; charset=UTF-8");
                     scope:this
                 });
             },
+            insertFirm: (reg) =>{                
+                var recoda = reg.store.data.items[0].data;
+                Ext.Ajax.request({
+                        url:'../../sis_organigrama/control/CertificadoPlanilla/saveDocumentoToSing',
+                        params:{'pdf':reg.docBase64, codigo:'certificado_trabajo_sis_orga', 'id_documento_wf':recoda.id_documento_wf,
+                            id_certificado_planilla: recoda.id_certificado_planilla},
+                        success: this.final,
+                        failure: this.conexionFailure,
+                        timeout:this.timeout,
+                        scope:this
+                    });
+            },
+            final:function(data){
+                    Phx.CP.loadingHide();
+                    var reg = Ext.util.JSON.decode(Ext.util.Format.trim(data.responseText));            
+                    console.log('freee',reg);
+            },                               
+            pdfGeneradoFir: function (rec) {                
+            var that = this;            
+            if(rec.chequeado == 'no' && rec.url ==''){                
+                Ext.Ajax.request({
+                    url:'../../'+rec.action,
+                    params:{'id_proceso_wf':rec.id_proceso_wf, 'action':rec.action},
+                    success: this.firmPd,
+                    failure: this.conexionFailure,
+                    timeout:this.timeout,
+                    scope:this
+                });                     
+            }else{                
+                var data = "id=" + rec['id_documento_wf'];
+                data += "&extension=" + rec['extension'];
+                data += "&sistema=sis_organigrama";
+                data += "&clase=CertificadoPlanilla";
+                data += "&url="+rec['url'];                
+
+                url_send_view = `../../../lib/lib_control/CTOpenFile.php?${data}`;                                
+                var num_int = fetch(url_send_view).then(response => response.arrayBuffer()).then(function(data){                
+                    var buffer = window.arrayBufferToBase64(data);
+                    this.docBase64 = buffer;                                                
+                });                 
+                }             
+            },
+            firmPd:function(resp){                
+                var that = this;            
+                var objRes = Ext.util.JSON.decode(Ext.util.Format.trim(resp.responseText));                            
+                var nomRep = objRes.ROOT.detalle.archivo_generado;            
+                if(Phx.CP.config_ini.x==1){  			
+                    nomRep = Phx.CP.CRIPT.Encriptar(nomRep);
+                }
+                var url = `../../../lib/lib_control/Intermediario.php?r=${nomRep}&t=${new Date().toLocaleTimeString()}`;     
+                const fet = fetch(url).then(response => response.arrayBuffer()).then( (data) => {
+                    var buffer = window.arrayBufferToBase64(data); 
+                    console.log('that.buffer ',that.buf);                   
+                    that.docBase64 = buffer;                    
+                });            
+            },            
             antEstado:function(res){
                 var rec=this.sm.getSelected();
                 Phx.CP.loadWindows('../../../sis_workflow/vista/estado_wf/AntFormEstadoWf.php',
@@ -727,7 +812,10 @@ header("content-type: text/javascript; charset=UTF-8");
                 },this);
 
             },
-            iniciarEventos:function(){            	            	
+            iniciarEventos:function(){
+                /*this.Cmp.enviar_mail.on('select', (c,r,i) =>{                    
+                    r.data == 1 && Ext.Ajax.request('',{})
+                },this);*/
             	this.Cmp.tipo_certificado.on('select',function(combo, record, index){           		         
             		if(record.data.ID == 3 || record.data.ID == 4){
             			this.mostrarComponente(this.Cmp.factura);
@@ -747,7 +835,7 @@ header("content-type: text/javascript; charset=UTF-8");
                 }
             },            
         imprimirNota: function(){
-            var rec = this.sm.getSelected(),
+            var rec = this.sm.getSelected(),               
                 data = rec.data,                
                 me = this;                
             if(confirm("¿Esta seguro de Imprimir el Certificado?") ){

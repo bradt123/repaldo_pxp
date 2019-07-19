@@ -38,7 +38,11 @@ $action;
 
 if($array != NULL){
     if (($array['url'] == '' || $array['url'] == null) && ($array['firma_digital'] == '' || $array['firma_digital'] == null )){        
-        $action = $pxpRestClient->doPost('organigrama/CertificadoPlanilla/certificadoTrabajoFirmDig');
+        $action = $pxpRestClient->doPost('organigrama/CertificadoPlanilla/certificadoTrabajoFirmDig',
+        array('id_proceso_wf'=> $_GET['p'],
+               'id_usuario' => 830
+              )
+        );
     }else{
         $action = $actSinFirm;
         $file_pdf= $pxpRestClient->doPost('organigrama/CertificadoPlanilla/getDocument',

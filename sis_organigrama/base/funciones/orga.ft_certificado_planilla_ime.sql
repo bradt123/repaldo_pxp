@@ -61,6 +61,7 @@ DECLARE
     v_impreso 		varchar;
     v_bo			integer;
     v_url			varchar;
+    v_id_documento_wf	integer;
 
 BEGIN
 
@@ -471,7 +472,12 @@ BEGIN
             where tcv.id_proceso_wf  = v_parametros.id_proceso_wf;
 
             --v_id_proceso_wf = v_registros_cvpn.id_proceso_wf;
-
+            
+              select d.id_documento_wf	into v_id_documento_wf
+              from wf.tdocumento_wf d
+              inner join wf.ttipo_documento t on t.id_tipo_documento = d.id_tipo_documento
+              where d.id_proceso_wf = v_parametros.id_proceso_wf 
+              and t.codigo = 'CERT';
 
             IF  v_operacion = 'anterior' THEN
                 --------------------------------------------------
@@ -535,10 +541,16 @@ BEGIN
                                                        v_parametros.id_proceso_wf,
                                                        v_codigo_estado) THEN
 
-                   raise exception 'Error al retroceder estado';
-
+                   raise exception 'Error al retroceder estado';                   
                 END IF;
-
+                
+				delete from firmdig.tdocumento_firm_dig 
+                where id_documento_wf = v_id_documento_wf;
+                
+                update orga.tcertificado_planilla set
+                impreso = 'no'
+                where id_certificado_planilla = v_registros_cer.id_certificado_planilla;                            
+                
                 v_resp = pxp.f_agrega_clave(v_resp,'mensaje','Se volvio al anterior estado)');
                 v_resp = pxp.f_agrega_clave(v_resp,'operacion','cambio_exitoso');
 

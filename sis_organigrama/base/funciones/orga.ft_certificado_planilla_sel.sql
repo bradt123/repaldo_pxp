@@ -58,12 +58,12 @@ BEGIN
                     INNER JOIN orga.vfuncionario fun on fun.id_funcionario = tf.id_funcionario
                     WHERE tu.id_usuario = p_id_usuario;
                IF  (p_administrador)  THEN
-					v_filtro = ' 0=0 and ';
-               elsif (v_parametros.tipo_interfaz ='CertificadoPlanilla')then
-                    v_filtro = ' 0=0 and ';
-               elsif (v_parametros.tipo_interfaz = 'CertificadoEmitido') THEN
-                   v_filtro ='planc.estado in (''emitido'') and w.id_funcionario ='||v_usuario.id_funcionario||' and';         
-               END IF;
+				v_filtro = ' 0=0 and ';
+          elsif (v_parametros.tipo_interfaz ='CertificadoPlanilla')then
+			v_filtro = ' 0=0 and ';
+          elsif (v_parametros.tipo_interfaz = 'CertificadoEmitido') THEN
+         v_filtro ='planc.estado in (''emitido'') and w.id_funcionario ='||v_usuario.id_funcionario||' and';
+     END IF;
 		--Sentencia de la consulta
 			v_consulta:='select
                               planc.id_certificado_planilla,
@@ -142,7 +142,6 @@ BEGIN
 			--Definicion de la respuesta
 			v_consulta:=v_consulta||v_parametros.filtro;
 			v_consulta:=v_consulta||' order by ' ||v_parametros.ordenacion|| ' ' || v_parametros.dir_ordenacion || ' limit ' || v_parametros.cantidad || ' offset ' || v_parametros.puntero;
-            			raise notice 'cosulta...%',v_parametros.filtro;
 			raise notice 'cosulta...%',v_consulta;
 			--Devuelve la respuesta
 			return v_consulta;
@@ -195,7 +194,6 @@ BEGIN
 			v_consulta:=v_consulta||v_parametros.filtro;
 
 			--Devuelve la respuesta
-            
 			return v_consulta;
 
 		end;
@@ -216,16 +214,14 @@ BEGIN
             v_impreso
             from  orga.tcertificado_planilla
             where id_proceso_wf = v_parametros.id_proceso_wf;
-
-    	/*if (v_impreso = 'si') then
+/*
+    	if (v_impreso = 'si') then
         raise exception 'El Certificado ya fue impreso';
         else
-        	if(pxp.f_existe_parametro(p_tabla,'impreso')) then 
-              /*update orga.tcertificado_planilla  set
-              impreso = v_parametros.impreso
-              where id_proceso_wf = v_parametros.id_proceso_wf;*/
-            end if;
-       	end if;*/
+      	update orga.tcertificado_planilla  set
+		impreso = v_parametros.impreso
+        where id_proceso_wf = v_parametros.id_proceso_wf;
+       	end if; */
 
         select orga.f_iniciales_funcionarios(p.desc_funcionario1)
         into
@@ -241,7 +237,7 @@ BEGIN
         from wf.testado_wf w
         inner join wf.ttipo_estado e on e.id_tipo_estado = w.id_tipo_estado
         inner join orga.vfuncionario f on f.id_funcionario = w.id_funcionario
-        where e.codigo = 'pendiente_firma' and w.id_proceso_wf = v_parametros.id_proceso_wf;
+        where e.codigo = 'emitido' and w.id_proceso_wf = v_parametros.id_proceso_wf;
 
 
         v_consulta:='select  initcap (fu.desc_funcionario1) as  nombre_funcionario,
@@ -316,9 +312,8 @@ BEGIN
                               JOIN orga.tuo ger ON ger.id_uo = orga.f_get_uo_gerencia(fu.id_uo, NULL::integer, NULL::date)
                               inner join wf.tdocumento_wf dw on dw.id_proceso_wf = c.id_proceso_wf
                               inner join wf.ttipo_documento td on td.id_tipo_documento = dw.id_tipo_documento and td.codigo = ''CERT''
-                              where c.id_proceso_wf ='||v_parametros.id_proceso_wf;
+                              where  c.id_proceso_wf ='||v_parametros.id_proceso_wf;
 			--Devuelve la respuesta
-            raise notice '%',v_consulta;
 			return v_consulta;
 
 		end;
@@ -500,7 +495,7 @@ BEGIN
 		--Devuelve la respuesta
         return v_consulta;
 
-	end;        
+	end;               
 
 	else
 

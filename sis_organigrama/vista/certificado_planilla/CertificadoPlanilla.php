@@ -94,10 +94,11 @@ header("content-type: text/javascript; charset=UTF-8");
                 this.id_document_general = record.data.id_documento_wf;
                 this.verifyDoc(record);                
                 //this.cambiarRevision(record);                
-            }else if(fieldName == 'firma_digital'){                
-                if(record.data.extension != '') this.VisorArchivo(record);                
+            }else if(fieldName == 'firma_digital'){    
+                this.VisorArchivo(record);            
+                //if(record.data.extension != '')                 
             }
-        },
+        },        
         /* consulta si documento existe en BD */
         verifyDoc: function (rec){
             var id_document = rec.data.id_documento_wf;
@@ -160,7 +161,7 @@ header("content-type: text/javascript; charset=UTF-8");
             return tb;
         },
 
-        VisorArchivo : function(rec) {            
+        VisorArchivo : function(rec) {                         
             var that = this;        
             var action = rec.data.action;
             var ext = rec.data.extension.length;
@@ -168,15 +169,14 @@ header("content-type: text/javascript; charset=UTF-8");
             var check = rec.data.chequeado;
             this.name_first = rec.data.nombre;
 
-            if(check == 'no' && url ==''){                          
+            if(check == 'no' && url ==''){                
                 this.pdfGenedaroSF(rec.data);                 
-            }else{                
+            }else{                                               
                 var data = "id=" + rec.data['id_documento_wf'];
-                data += "&extension=" + rec.data['extension'];
+                data += "&extension=pdf";
                 data += "&sistema=sis_organigrama";
                 data += "&clase=CertificadoPlanilla";
                 data += "&url="+rec.data['url'];                
-
                 url_send_view = `../../../lib/lib_control/CTOpenFile.php?${data}`;                
                 var num_int = fetch(url_send_view).then(response => response.arrayBuffer()).then(function(data){
                 var base = this.arrayBufferToBase64(data);                

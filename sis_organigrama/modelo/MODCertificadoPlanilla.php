@@ -58,7 +58,7 @@ class MODCertificadoPlanilla extends MODbase{
 
 
 		//Ejecuta la instruccion
-		$this->armarConsulta();
+        $this->armarConsulta();        
 		$this->ejecutarConsulta();
 		//var_dump($this->respuesta); exit;
 		//Devuelve la respuesta
@@ -183,7 +183,7 @@ class MODCertificadoPlanilla extends MODbase{
         $this->setCount(false);
         $this->setParametro('id_proceso_wf', 'id_proceso_wf', 'int4');
         $this->setParametro('id_usuario','id_usuario','int4');
-        $this->setParametro('impreso','impreso','varchar');
+        //$this->setParametro('impreso','impreso','varchar');
 
         $this->captura('nombre_funcionario','text');
         $this->captura('nombre_cargo','varchar');
@@ -467,7 +467,8 @@ class MODCertificadoPlanilla extends MODbase{
 		//Define los parametros para la funcion        
         $this->setParametro('pdf', 'pdf', 'text');
         $this->setParametro('codigo', 'codigo', 'varchar');
-		$this->setParametro('id_documento_wf','id_documento_wf','integer');
+        $this->setParametro('id_documento_wf','id_documento_wf','integer');
+        $this->setParametro('id_certificado_planilla','id_certificado_planilla','integer');
 		
 		//Ejecuta la instruccion
 		$this->armarConsulta();
