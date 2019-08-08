@@ -66,78 +66,60 @@ BEGIN
      END IF;
 		--Sentencia de la consulta
 			v_consulta:='select
-                              planc.id_certificado_planilla,
-                              planc.tipo_certificado,
-                              planc.fecha_solicitud,
-                              planc.beneficiario,
-                              planc.id_funcionario,
-                              planc.estado_reg,
-                              planc.importe_viatico,
-                              planc.id_usuario_ai,
-                              planc.fecha_reg,
-                              planc.usuario_ai,
-                              planc.id_usuario_reg,
-                              planc.fecha_mod,
-                              planc.id_usuario_mod,
-                              usu1.cuenta as usr_reg,
-                              usu2.cuenta as usr_mod,
-                              fun.desc_funcionario1,
-                              planc.nro_tramite,
-                              planc.estado,
-                              planc.id_proceso_wf,
-                              planc.id_estado_wf,
-                              fun.nombre_cargo,
-                              pe.ci,
-                              --round(es.haber_basico + round(plani.f_evaluar_antiguedad(plani.f_get_fecha_primer_contrato_empleado(fun.id_uo_funcionario, fun.id_funcionario, fun.fecha_asignacion), planc.fecha_solicitud::date, fon.antiguedad_anterior), 2)) as haber_basico,
-                              (select
-                                  round(colval.valor,2)
-                                  from plani.tcolumna_valor colval
-                                  inner join plani.tfuncionario_planilla funpla on funpla.id_funcionario_planilla = colval.id_funcionario_planilla
-                                  inner join plani.tplanilla pla on pla.id_planilla = funpla.id_planilla and pla.id_tipo_planilla = 1
-                                  where  funpla.id_funcionario = planc.id_funcionario
-                                  and colval.codigo_columna = ''COTIZABLE''
-                                  and pla.fecha_planilla =
-                                                        (select p.fecha_planilla
-                                                          from plani.tplanilla p
-                                                          where 
-                                                          p.id_tipo_planilla = 1
-                                                          and p.id_periodo = (select p.id_periodo
-                                                                                from param.tperiodo p
-                                                                                where  planc.fecha_solicitud between p.fecha_ini and p.fecha_fin
-                                                                                ) - 1)) as  haber_basico,                              
-                              pe.expedicion,
-                              planc.impreso,
-                              planc.impreso as control,
-                              planc.nro_factura as factura,
-                              dw.url,
-                              td.action,
-                              dw.id_documento_wf,
-                              dw.firma_digital,
-                              td.nombre,
-                              td.extension,
-                              case when ( select h.estado_reg
-                              from wf.tdocumento_historico_wf h
-                              inner join wf.tdocumento_wf d on d.id_documento_wf=h.id_documento
-                              where d.id_proceso_wf= planc.id_proceso_wf 
-                              limit 1) = ''activo'' then 
-                              ''si''
-                              else 
-                              ''no''
-                              end as habilitado,
-                              dw.chequeado
-                              from orga.tcertificado_planilla planc
-                              inner join segu.tusuario usu1 on usu1.id_usuario = planc.id_usuario_reg
-                              inner join orga.vfuncionario_cargo fun on fun.id_funcionario = planc.id_funcionario and (fun.fecha_finalizacion is null or fun.fecha_finalizacion >= now())
-                              inner join orga.tcargo car on car.id_cargo = fun.id_cargo and (car.fecha_fin is null or car.fecha_fin >= now()) and car.estado_reg = ''activo''
-							  inner join orga.tuo_funcionario ufun on ufun.id_cargo = car.id_cargo and ufun.tipo=''oficial''  and ufun.id_funcionario= planc.id_funcionario
-                              inner join orga.tescala_salarial es on es.id_escala_salarial =car.id_escala_salarial
-                              inner join orga.tfuncionario fon on fon.id_funcionario = planc.id_funcionario
-                              inner join segu.tpersona pe on pe .id_persona = fon.id_persona
-                              inner join wf.testado_wf w on w.id_estado_wf = planc.id_estado_wf
-                              left join segu.tusuario usu2 on usu2.id_usuario = planc.id_usuario_mod
-                              inner join wf.tdocumento_wf dw on dw.id_proceso_wf = planc.id_proceso_wf and dw.id_estado_ini is not null 
-                              inner join wf.ttipo_documento td on td.id_tipo_documento = dw.id_tipo_documento and td.codigo = ''CERT''
-                              where  '||v_filtro;
+							planc.id_certificado_planilla,
+                            planc.tipo_certificado,
+                            planc.fecha_solicitud,
+                            planc.beneficiario,
+                            planc.id_funcionario,
+                            planc.estado_reg,
+                            planc.importe_viatico,
+                            planc.id_usuario_ai,
+                            planc.fecha_reg,
+                            planc.usuario_ai,
+                            planc.id_usuario_reg,
+                            planc.fecha_mod,
+                            planc.id_usuario_mod,
+                            usu1.cuenta as usr_reg,
+                            usu2.cuenta as usr_mod,
+                            fun.desc_funcionario1,
+                            planc.nro_tramite,
+                            planc.estado,
+                            planc.id_proceso_wf,
+                            planc.id_estado_wf,
+                            planc.cargo_funcionario,
+                            pe.ci,
+                            planc.haber_basico,
+                            pe.expedicion,
+                            planc.impreso,        
+                            planc.impreso as control,
+                            planc.nro_factura as factura,
+                            dw.url,
+                            td.action,
+                            dw.id_documento_wf,
+                            dw.firma_digital,
+                            td.nombre,
+                            td.extension,
+                            case when ( select h.estado_reg
+                            from wf.tdocumento_historico_wf h
+                            inner join wf.tdocumento_wf d on d.id_documento_wf=h.id_documento
+                            where d.id_proceso_wf= planc.id_proceso_wf 
+                            limit 1) = ''activo'' then 
+                            ''si''
+                            else 
+                            ''no''
+                            end as habilitado,
+                            dw.chequeado
+                            from orga.tcertificado_planilla planc
+                            inner join segu.tusuario usu1 on usu1.id_usuario = planc.id_usuario_reg
+                            inner join orga.tuo_funcionario fuo on fuo.id_uo_funcionario = planc.id_funcionario
+            			    and fuo.tipo = ''oficial''
+                            inner join orga.vfuncionario fun on fun.id_funcionario = fuo.id_funcionario
+                            inner join segu.tpersona pe on pe .id_persona = fun.id_persona
+                            inner join wf.testado_wf w on w.id_estado_wf = planc.id_estado_wf
+                            left join segu.tusuario usu2 on usu2.id_usuario = planc.id_usuario_mod
+                            inner join wf.tdocumento_wf dw on dw.id_proceso_wf = planc.id_proceso_wf and dw.id_estado_ini is not null 
+	                        inner join wf.ttipo_documento td on td.id_tipo_documento = dw.id_tipo_documento and td.codigo = ''CERT''
+                            where  '||v_filtro;
 
 			--Definicion de la respuesta
 			v_consulta:=v_consulta||v_parametros.filtro;
@@ -175,19 +157,16 @@ BEGIN
      END IF;
 			--Sentencia de la consulta de conteo de registros
 			v_consulta:='select count(id_certificado_planilla)
-
-                      from orga.tcertificado_planilla planc
+                            from orga.tcertificado_planilla planc
                             inner join segu.tusuario usu1 on usu1.id_usuario = planc.id_usuario_reg
-                            inner join orga.vfuncionario_cargo fun on fun.id_funcionario = planc.id_funcionario and (fun.fecha_finalizacion is null or fun.fecha_finalizacion >= now())
-                            inner join orga.tcargo car on car.id_cargo = fun.id_cargo and (car.fecha_fin is null or car.fecha_fin >= now()) and car.estado_reg = ''activo''
-							inner join orga.tuo_funcionario ufun on ufun.id_cargo = car.id_cargo and ufun.tipo=''oficial''  and ufun.id_funcionario= planc.id_funcionario
-                            inner join orga.tescala_salarial es on es.id_escala_salarial =car.id_escala_salarial
-                            inner join orga.tfuncionario fon on fon.id_funcionario = planc.id_funcionario
-                            inner join segu.tpersona pe on pe .id_persona = fon.id_persona
+                            inner join orga.tuo_funcionario fuo on fuo.id_uo_funcionario = planc.id_funcionario
+            			    and fuo.tipo = ''oficial''
+                            inner join orga.vfuncionario fun on fun.id_funcionario = fuo.id_funcionario
+                            inner join segu.tpersona pe on pe .id_persona = fun.id_persona
                             inner join wf.testado_wf w on w.id_estado_wf = planc.id_estado_wf
                             left join segu.tusuario usu2 on usu2.id_usuario = planc.id_usuario_mod
                             inner join wf.tdocumento_wf dw on dw.id_proceso_wf = planc.id_proceso_wf and dw.id_estado_ini is not null 
-                            inner join wf.ttipo_documento td on td.id_tipo_documento = dw.id_tipo_documento and td.codigo = ''CERT''
+	                        inner join wf.ttipo_documento td on td.id_tipo_documento = dw.id_tipo_documento and td.codigo = ''CERT''
 					    where '||v_filtro;
 
 			--Definicion de la respuesta
@@ -240,80 +219,50 @@ BEGIN
         where e.codigo = 'emitido' and w.id_proceso_wf = v_parametros.id_proceso_wf;
 
 
-        v_consulta:='select  initcap (fu.desc_funcionario1) as  nombre_funcionario,
-                              fu.nombre_cargo,
-                              plani.f_get_fecha_primer_contrato_empleado(fu.id_uo_funcionario, fu.id_funcionario, fu.fecha_asignacion) as fecha_contrato,
-                              --round(es.haber_basico + round(plani.f_evaluar_antiguedad(plani.f_get_fecha_primer_contrato_empleado(fu.id_uo_funcionario, fu.id_funcionario, fu.fecha_asignacion), c.fecha_solicitud::date, fun.antiguedad_anterior), 2)) as haber_basico,
-                             (select
-                                        round(colval.valor,2)
-                                        from plani.tcolumna_valor colval
-                                        inner join plani.tfuncionario_planilla funpla on funpla.id_funcionario_planilla = colval.id_funcionario_planilla
-                                        inner join plani.tplanilla pla on pla.id_planilla = funpla.id_planilla and pla.id_tipo_planilla = 1
-                                        where  funpla.id_funcionario = c.id_funcionario
-                                        and colval.codigo_columna = ''COTIZABLE''
-                                        and pla.fecha_planilla = 
-                                                          (select p.fecha_planilla
-                                                          from plani.tplanilla p
-                                                          where 
-                                                          p.id_tipo_planilla = 1
-                                                          and p.id_periodo = (select p.id_periodo
-                                                                                from param.tperiodo p
-                                                                                where  c.fecha_solicitud between p.fecha_ini and p.fecha_fin
-                                                                                ) - 1)) as  haber_basico,                              
-                              pe.ci,
-                              pe.expedicion,
-                              CASE
-                              WHEN pe.genero::text = ANY (ARRAY[''varon''::character varying,''VARON''::character varying, ''Varon''::character varying]::text[]) THEN ''Sr''::text
-                              WHEN pe.genero::text = ANY (ARRAY[''mujer''::character varying,''MUJER''::character varying, ''Mujer''::character varying]::text[]) THEN ''Sra''::text
-                              ELSE ''''::text
-                              END::character varying AS genero,
-                              c.fecha_solicitud,
-                              ger.nombre_unidad,
-                              initcap  (mat.f_primer_letra_mayuscula( pxp.f_convertir_num_a_letra(
-                             (select
-                                        round(colval.valor,2)
-                                        from plani.tcolumna_valor colval
-                                        inner join plani.tfuncionario_planilla funpla on funpla.id_funcionario_planilla = colval.id_funcionario_planilla
-                                        inner join plani.tplanilla pla on pla.id_planilla = funpla.id_planilla and pla.id_tipo_planilla = 1
-                                        where  funpla.id_funcionario = c.id_funcionario
-                                        and colval.codigo_columna = ''COTIZABLE''
-                                        and pla.fecha_planilla = 
-                                                          (select p.fecha_planilla
-                                                          from plani.tplanilla p
-                                                          where 
-                                                          p.id_tipo_planilla = 1
-                                                          and p.id_periodo = (select p.id_periodo
-                                                                                from param.tperiodo p
-                                                                                where  c.fecha_solicitud between p.fecha_ini and p.fecha_fin
-                                                                                ) - 1))              
-                                            
-                              )))::varchar as haber_literal,
-                              (select initcap( cart.desc_funcionario1)
-                              from orga.vfuncionario_cargo cart
-                              where cart.nombre_cargo = ''Jefe Recursos Humanos'') as jefa_recursos,
-                              c.tipo_certificado,
-                              c.importe_viatico,
-                              initcap  (mat.f_primer_letra_mayuscula( pxp.f_convertir_num_a_letra(c.importe_viatico)))::varchar as literal_importe_viatico,
-                              c.nro_tramite,
-                              '''||COALESCE (v_iniciales,'NA')||'''::varchar as iniciales,
-                               '''||COALESCE (v_fun_emetido,'NA')||'''::varchar as fun_imitido,
-                               c.estado,
-                               ca.codigo as nro_item,
-                               c.id_proceso_wf,
-                               dw.id_documento_wf
-                              from orga.tcertificado_planilla c
-                              inner join orga.vfuncionario_cargo  fu on fu.id_funcionario = c.id_funcionario and( fu.fecha_finalizacion is null or  fu.fecha_finalizacion >= now())
-                              inner join orga.tcargo ca on ca.id_cargo = fu.id_cargo
-                              inner join orga.tuo_funcionario ufun on ufun.id_cargo = ca.id_cargo and ufun.tipo=''oficial''  
-                              and ufun.id_funcionario= c.id_funcionario                              
-                              inner join orga.tescala_salarial es on es.id_escala_salarial = ca.id_escala_salarial
-                              inner join orga.tfuncionario fun on fun.id_funcionario = fu.id_funcionario
-                              inner join segu.tpersona pe on pe.id_persona = fun.id_persona
-                              JOIN orga.tuo ger ON ger.id_uo = orga.f_get_uo_gerencia(fu.id_uo, NULL::integer, NULL::date)
-                              inner join wf.tdocumento_wf dw on dw.id_proceso_wf = c.id_proceso_wf
-                              inner join wf.ttipo_documento td on td.id_tipo_documento = dw.id_tipo_documento and td.codigo = ''CERT''
-                              where  c.id_proceso_wf ='||v_parametros.id_proceso_wf;
+        v_consulta:='select  
+                        initcap (fun.desc_funcionario1) as  nombre_funcionario,
+                        cpla.cargo_funcionario as nombre_cargo,
+                        (select min(car.fecha_asignacion)
+                        from orga.vfuncionario_cargo car
+                        where car.id_funcionario = fun.id_funcionario ) as fecha_contrato,
+                        cpla.haber_basico,
+                        per.ci,
+                        per.expedicion,
+                        CASE
+                        WHEN per.genero::text = ANY (ARRAY[''varon''::character varying,''VARON''::character varying, ''Varon''::character varying]::text[]) THEN ''Sr''::text
+                        WHEN per.genero::text = ANY (ARRAY[''mujer''::character varying,''MUJER''::character varying, ''Mujer''::character varying]::text[]) THEN ''Sra''::text
+                        ELSE ''''::text
+                        END::character varying AS genero,
+                        cpla.fecha_solicitud,
+                        ger.nombre_unidad,
+                        initcap(mat.f_primer_letra_mayuscula( pxp.f_convertir_num_a_letra(cpla.haber_basico)))::varchar as haber_literal,
+                        (select initcap( cart.desc_funcionario1)
+                        from orga.vfuncionario_cargo cart
+                        where cart.nombre_cargo = ''Jefe Recursos Humanos'') as jefa_recursos,
+                        cpla.tipo_certificado,
+                        cpla.importe_viatico,
+                        initcap  (mat.f_primer_letra_mayuscula( pxp.f_convertir_num_a_letra(cpla.importe_viatico)))::varchar as literal_importe_viatico,
+                        cpla.nro_tramite,
+                        '''||COALESCE (v_iniciales,'NA')||'''::varchar as iniciales,
+                        '''||COALESCE (v_fun_emetido,'NA')||'''::varchar as fun_imitido,
+                        cpla.estado,
+                        fca.codigo as nro_item,
+        				cpla.id_proceso_wf,
+        				dw.id_documento_wf
+                        from orga.tcertificado_planilla cpla
+                        inner join segu.tusuario usu1 on usu1.id_usuario = cpla.id_usuario_reg 
+                        inner join orga.tuo_funcionario fuo on fuo.id_uo_funcionario = cpla.id_funcionario
+                        inner join orga.vfuncionario fun on fun.id_funcionario = fuo.id_funcionario
+                        inner join segu.tpersona per on per.id_persona = fun.id_persona
+                        inner join orga.vfuncionario_cargo fca on fca.id_uo_funcionario = fun.id_funcionario 
+                        inner join wf.testado_wf esw on esw.id_estado_wf = cpla.id_estado_wf 
+                        inner join orga.tuo ger ON ger.id_uo = orga.f_get_uo_gerencia(fuo.id_uo, NULL::integer, NULL::date)
+                        inner join wf.tdocumento_wf dw on dw.id_proceso_wf = cpla.id_proceso_wf and dw.id_estado_ini is not null 
+                        inner join wf.ttipo_documento td on td.id_tipo_documento = dw.id_tipo_documento and td.codigo = ''CERT''                        
+                        where cpla.id_proceso_wf ='||v_parametros.id_proceso_wf;
+                        
 			--Devuelve la respuesta
+            raise notice '%',v_consulta;
 			return v_consulta;
 
 		end;
@@ -345,75 +294,49 @@ BEGIN
         where e.codigo = 'emitido' and w.id_proceso_wf = v_parametros.id_proceso_wf;
 
 
-        v_consulta:='select  initcap (fu.desc_funcionario1) as  nombre_funcionario,
-                              fu.nombre_cargo,
-                              plani.f_get_fecha_primer_contrato_empleado(fu.id_uo_funcionario, fu.id_funcionario, fu.fecha_asignacion) as fecha_contrato,
-                              --round(es.haber_basico + round(plani.f_evaluar_antiguedad(plani.f_get_fecha_primer_contrato_empleado(fu.id_uo_funcionario, fu.id_funcionario, fu.fecha_asignacion), c.fecha_solicitud::date, fun.antiguedad_anterior), 2)) as haber_basico,
-                             (select
-                                        round(colval.valor,2)
-                                        from plani.tcolumna_valor colval
-                                        inner join plani.tfuncionario_planilla funpla on funpla.id_funcionario_planilla = colval.id_funcionario_planilla
-                                        inner join plani.tplanilla pla on pla.id_planilla = funpla.id_planilla and pla.id_tipo_planilla = 1
-                                        where  funpla.id_funcionario = c.id_funcionario
-                                        and colval.codigo_columna = ''COTIZABLE''
-                                        and pla.fecha_planilla =                                                           
-                                                          (select p.fecha_planilla
-                                                          from plani.tplanilla p
-                                                          where 
-                                                          p.id_tipo_planilla = 1
-                                                          and p.id_periodo = (select p.id_periodo
-                                                                                from param.tperiodo p
-                                                                                where  c.fecha_solicitud between p.fecha_ini and p.fecha_fin
-                                                                                ) - 1)) as  haber_basico,                             
-                              pe.ci,
-                              pe.expedicion,
-                              CASE
-                              WHEN pe.genero::text = ANY (ARRAY[''varon''::character varying,''VARON''::character varying, ''Varon''::character varying]::text[]) THEN ''Sr''::text
-                              WHEN pe.genero::text = ANY (ARRAY[''mujer''::character varying,''MUJER''::character varying, ''Mujer''::character varying]::text[]) THEN ''Sra''::text
-                              ELSE ''''::text
-                              END::character varying AS genero,
-                              c.fecha_solicitud,
-                              ger.nombre_unidad,
-                              initcap  (mat.f_primer_letra_mayuscula( pxp.f_convertir_num_a_letra(
-                               (select
-                                          round(colval.valor,2)
-                                          from plani.tcolumna_valor colval
-                                          inner join plani.tfuncionario_planilla funpla on funpla.id_funcionario_planilla = colval.id_funcionario_planilla
-                                          inner join plani.tplanilla pla on pla.id_planilla = funpla.id_planilla and pla.id_tipo_planilla = 1
-                                          where  funpla.id_funcionario = c.id_funcionario
-                                          and colval.codigo_columna = ''COTIZABLE''
-                                          and pla.fecha_planilla = 
-                                                            (select p.fecha_planilla
-                                                            from plani.tplanilla p
-                                                            where 
-                                                            p.id_tipo_planilla = 1
-                                                            and p.id_periodo = (select p.id_periodo
-                                                                                  from param.tperiodo p
-                                                                                  where  c.fecha_solicitud between p.fecha_ini and p.fecha_fin
-                                                                                  ) - 1))                              
-                               )))::varchar as haber_literal,
-                              (select initcap( cart.desc_funcionario1)
-                              from orga.vfuncionario_cargo cart
-                              where cart.nombre_cargo = ''Jefe Recursos Humanos'') as jefa_recursos,
-                              c.tipo_certificado,
-                              c.importe_viatico,
-                              initcap  (mat.f_primer_letra_mayuscula( pxp.f_convertir_num_a_letra(c.importe_viatico)))::varchar as literal_importe_viatico,
-                              c.nro_tramite,
-                              '''||COALESCE (v_iniciales,'NA')||'''::varchar as iniciales,
-                               '''||COALESCE (v_fun_emetido,'NA')||'''::varchar as fun_imitido,
-                               c.estado,
-                               ca.codigo as nro_item
-                              from orga.tcertificado_planilla c
-                              inner join orga.vfuncionario_cargo  fu on fu.id_funcionario = c.id_funcionario and( fu.fecha_finalizacion is null or  fu.fecha_finalizacion >= now())
-                              inner join orga.tcargo ca on ca.id_cargo = fu.id_cargo
-                              inner join orga.tuo_funcionario ufun on ufun.id_cargo = ca.id_cargo and ufun.tipo=''oficial''  
-                              and ufun.id_funcionario= c.id_funcionario
-                              inner join orga.tescala_salarial es on es.id_escala_salarial = ca.id_escala_salarial
-                              inner join orga.tfuncionario fun on fun.id_funcionario = fu.id_funcionario
-                              inner join segu.tpersona pe on pe.id_persona = fun.id_persona
-                              JOIN orga.tuo ger ON ger.id_uo = orga.f_get_uo_gerencia(fu.id_uo, NULL::integer, NULL::date)
-                              where c.id_proceso_wf ='||v_parametros.id_proceso_wf;
+        v_consulta:='select  
+                        initcap (fun.desc_funcionario1) as  nombre_funcionario,
+                        cpla.cargo_funcionario as nombre_cargo,
+                        (select min(car.fecha_asignacion)
+                        from orga.vfuncionario_cargo car
+                        where car.id_funcionario = fun.id_funcionario) as fecha_contrato,
+                        cpla.haber_basico,
+                        per.ci,
+                        per.expedicion,
+                        CASE
+                        WHEN per.genero::text = ANY (ARRAY[''varon''::character varying,''VARON''::character varying, ''Varon''::character varying]::text[]) THEN ''Sr''::text
+                        WHEN per.genero::text = ANY (ARRAY[''mujer''::character varying,''MUJER''::character varying, ''Mujer''::character varying]::text[]) THEN ''Sra''::text
+                        ELSE ''''::text
+                        END::character varying AS genero,
+                        cpla.fecha_solicitud,
+                        ger.nombre_unidad,
+                        initcap(mat.f_primer_letra_mayuscula( pxp.f_convertir_num_a_letra(cpla.haber_basico)))::varchar as haber_literal,
+                        (select initcap( cart.desc_funcionario1)
+                        from orga.vfuncionario_cargo cart
+                        where cart.nombre_cargo = ''Jefe Recursos Humanos'') as jefa_recursos,
+                        cpla.tipo_certificado,
+                        cpla.importe_viatico,
+                        initcap  (mat.f_primer_letra_mayuscula( pxp.f_convertir_num_a_letra(cpla.importe_viatico)))::varchar as literal_importe_viatico,
+                        cpla.nro_tramite,
+                        '''||COALESCE (v_iniciales,'NA')||'''::varchar as iniciales,
+                        '''||COALESCE (v_fun_emetido,'NA')||'''::varchar as fun_imitido,
+                        cpla.estado,
+                        fca.codigo as nro_item,
+        				cpla.id_proceso_wf,
+        				dw.id_documento_wf
+                        from orga.tcertificado_planilla cpla
+                        inner join segu.tusuario usu1 on usu1.id_usuario = cpla.id_usuario_reg 
+                        inner join orga.tuo_funcionario fuo on fuo.id_uo_funcionario = cpla.id_funcionario
+                        inner join orga.vfuncionario fun on fun.id_funcionario = fuo.id_funcionario
+                        inner join segu.tpersona per on per.id_persona = fun.id_persona
+                        inner join orga.vfuncionario_cargo fca on fca.id_uo_funcionario = fun.id_funcionario 
+                        inner join wf.testado_wf esw on esw.id_estado_wf = cpla.id_estado_wf 
+                        inner join orga.tuo ger ON ger.id_uo = orga.f_get_uo_gerencia(fuo.id_uo, NULL::integer, NULL::date)
+                        inner join wf.tdocumento_wf dw on dw.id_proceso_wf = cpla.id_proceso_wf and dw.id_estado_ini is not null 
+                        inner join wf.ttipo_documento td on td.id_tipo_documento = dw.id_tipo_documento and td.codigo = ''CERT''                        
+                        where cpla.id_proceso_wf ='||v_parametros.id_proceso_wf;
 			--Devuelve la respuesta
+            raise notice '%',v_consulta;
 			return v_consulta;
 
 		end;
@@ -517,8 +440,4 @@ LANGUAGE 'plpgsql'
 VOLATILE
 CALLED ON NULL INPUT
 SECURITY INVOKER
-PARALLEL UNSAFE
 COST 100;
-
-ALTER FUNCTION orga.ft_certificado_planilla_sel (p_administrador integer, p_id_usuario integer, p_tabla varchar, p_transaccion varchar)
-  OWNER TO postgres;

@@ -23,45 +23,47 @@ $body$
 
 DECLARE
 
-	v_nro_requerimiento    	integer;
-	v_parametros           	record;
-	v_id_requerimiento     	integer;
-	v_resp		            varchar;
-	v_nombre_funcion        text;
-	v_mensaje_error         text;
-	v_id_certificado_planilla	integer;
-    v_id_gestion			integer;
-    v_nro_tramite			varchar;
-   	v_id_proceso_wf			integer;
-    v_id_estado_wf			integer;
-    v_codigo_estado			varchar;
-    v_codigo_tipo_proceso 	varchar;
-    v_id_proceso_macro		integer;
+	v_nro_requerimiento    			integer;
+	v_parametros           			record;
+	v_id_requerimiento     			integer;
+	v_resp		            		varchar;
+	v_nombre_funcion        		text;
+	v_mensaje_error         		text;
+	v_id_certificado_planilla		integer;
+    v_id_gestion					integer;
+    v_nro_tramite					varchar;
+   	v_id_proceso_wf					integer;
+    v_id_estado_wf					integer;
+    v_codigo_estado					varchar;
+    v_codigo_tipo_proceso 			varchar;
+    v_id_proceso_macro				integer;
 
-    v_registo				record;
-    v_acceso_directo		varchar;
-    v_clase					varchar;
-    v_parametros_ad			varchar;
-    v_tipo_noti				varchar;
-    v_titulo				varchar;
-    v_id_tipo_estado		integer;
-    v_pedir_obs				varchar;
-    v_codigo_estado_siguiente varchar;
-    v_obs					varchar;
-    v_id_estado_actual			integer;
-    v_id_depto					integer;
+    v_registo						record;
+    v_acceso_directo				varchar;
+    v_clase							varchar;
+    v_parametros_ad					varchar;
+    v_tipo_noti						varchar;
+    v_titulo						varchar;
+    v_id_tipo_estado				integer;
+    v_pedir_obs						varchar;
+    v_codigo_estado_siguiente 		varchar;
+    v_obs							varchar;
+    v_id_estado_actual				integer;
+    v_id_depto						integer;
     v_operacion						varchar;
     v_registros_cer					record;
-    v_id_funcionario integer;
-    v_id_usuario_reg integer;
-    v_id_estado_wf_ant	integer;
-    v_count			integer;
-    v_valor			integer;
-    v_funcionario	varchar;
-    v_impreso 		varchar;
-    v_bo			integer;
-    v_url			varchar;
-    v_id_documento_wf	integer;
+    v_id_funcionario 				integer;
+    v_id_usuario_reg 				integer;
+    v_id_estado_wf_ant				integer;
+    v_count							integer;
+    v_valor							integer;
+    v_funcionario					varchar;
+    v_impreso 						varchar;
+    v_bo							integer;
+    v_url							varchar;
+    v_id_documento_wf				integer;
+    v_fun							record;
+	v_haber_basico					orga.tcertificado_planilla.haber_basico%TYPE;
 
 BEGIN
 
@@ -76,6 +78,7 @@ BEGIN
 	***********************************/
 
 	if(p_transaccion='OR_PLANC_INS')then
+
 
         begin
 
@@ -100,32 +103,32 @@ BEGIN
         from orga.vfuncionario
         where id_funcionario = v_parametros.id_funcionario;
 
-  if(pxp.f_existe_parametro(p_tabla,'factura'))then
+        if(pxp.f_existe_parametro(p_tabla,'factura'))then
 
-        if (v_parametros.factura ='') then
-            if v_valor = v_count then
-            raise exception 'El Funcionario %, sobrepaso el limite maximo de certificados emitidos por gestion = %.',v_funcionario,v_valor;
-            end if ;
+              if (v_parametros.factura ='') then
+                  if v_valor = v_count then
+                  raise exception 'El Funcionario %, sobrepaso el limite maximo de certificados emitidos por gestion = %.',v_funcionario,v_valor;
+                  end if ;
+              end if;
+          else
+                if v_valor = v_count then
+                    raise exception 'El Funcionario %, sobrepaso el limite maximo de certificados emitidos por gestion = %.',v_funcionario,v_valor;
+                end if;
         end if;
-    else
-          if v_valor = v_count then
-              raise exception 'El Funcionario %, sobrepaso el limite maximo de certificados emitidos por gestion = %.',v_funcionario,v_valor;
-          end if;
-  end if;
 
         --Gestion para WF
-    	   SELECT g.id_gestion
-           INTO v_id_gestion
-           FROM param.tgestion g
-           WHERE g.gestion = EXTRACT(YEAR FROM current_date);
+         SELECT g.id_gestion
+         INTO v_id_gestion
+         FROM param.tgestion g
+         WHERE g.gestion = EXTRACT(YEAR FROM current_date);
 
 
 
-            select    tp.codigo, pm.id_proceso_macro
-           into v_codigo_tipo_proceso, v_id_proceso_macro
-           from  wf.tproceso_macro pm
-           inner join wf.ttipo_proceso tp on tp.id_proceso_macro = pm.id_proceso_macro
-           where pm.codigo='CT' and tp.estado_reg = 'activo' and tp.inicio = 'si' ;
+          select    tp.codigo, pm.id_proceso_macro
+         into v_codigo_tipo_proceso, v_id_proceso_macro
+         from  wf.tproceso_macro pm
+         inner join wf.ttipo_proceso tp on tp.id_proceso_macro = pm.id_proceso_macro
+         where pm.codigo='CT' and tp.estado_reg = 'activo' and tp.inicio = 'si' ;
 
             SELECT
                  ps_num_tramite ,
@@ -150,6 +153,30 @@ BEGIN
                  v_codigo_tipo_proceso);
 
 
+		-- Obtencion de cargo funcionario, a la fecha solicitud 
+          SELECT c.descripcion_cargo,c.id_uo_funcionario into v_fun 
+          FROM orga.vfuncionario_cargo_lugar c
+          where c.id_funcionario = v_parametros.id_funcionario;
+          
+        -- Obtencion de haber basico de, a la fecha solicitud   
+          select
+            round(colval.valor,2) into v_haber_basico 
+            from plani.tcolumna_valor colval
+            inner join plani.tfuncionario_planilla funpla on funpla.id_funcionario_planilla = colval.id_funcionario_planilla
+            inner join plani.tplanilla pla on pla.id_planilla = funpla.id_planilla and pla.id_tipo_planilla = 1
+            where  funpla.id_funcionario = v_parametros.id_funcionario
+            and colval.codigo_columna = 'COTIZABLE'
+            and pla.fecha_planilla =
+                (select p.fecha_planilla
+                  from plani.tplanilla p
+                  where 
+                  p.id_tipo_planilla = 1
+                  and p.id_periodo = (select p.id_periodo
+                                        from param.tperiodo p
+                                        where  current_date between p.fecha_ini and p.fecha_fin
+                                        ) - 1);
+
+
 	if(pxp.f_existe_parametro(p_tabla,'factura'))then
 
         	--Sentencia de la insercion
@@ -169,11 +196,14 @@ BEGIN
             estado,
             id_proceso_wf,
             id_estado_wf,
-            nro_factura
+            nro_factura,
+            haber_basico,
+            cargo_funcionario            
           	) values(
 			v_parametros.tipo_certificado,
 			v_parametros.fecha_solicitud,
-			v_parametros.id_funcionario,
+			--v_parametros.id_funcionario,
+			v_fun.id_uo_funcionario,            
 			'activo',
 			COALESCE (v_parametros.importe_viatico,0),
 			v_parametros._id_usuario_ai,
@@ -186,7 +216,9 @@ BEGIN
             v_codigo_estado,
             v_id_proceso_wf,
 			v_id_estado_wf,
-            v_parametros.factura
+            v_parametros.factura,
+            v_haber_basico,
+            v_fun.descripcion_cargo            
 			)RETURNING id_certificado_planilla into v_id_certificado_planilla;
 	ELSE
         	--Sentencia de la insercion
@@ -205,11 +237,14 @@ BEGIN
             nro_tramite,
             estado,
             id_proceso_wf,
-            id_estado_wf
+            id_estado_wf,
+            haber_basico,
+            cargo_funcionario             
           	) values(
 			v_parametros.tipo_certificado,
 			v_parametros.fecha_solicitud,
-			v_parametros.id_funcionario,
+			--v_parametros.id_funcionario,
+			v_fun.id_uo_funcionario,
 			'activo',
 			COALESCE (v_parametros.importe_viatico,0),
 			v_parametros._id_usuario_ai,
@@ -221,7 +256,9 @@ BEGIN
             v_nro_tramite,
             v_codigo_estado,
             v_id_proceso_wf,
-			v_id_estado_wf
+			v_id_estado_wf,
+            v_haber_basico,
+            v_fun.descripcion_cargo            
 			)RETURNING id_certificado_planilla into v_id_certificado_planilla;
 	end if;
 
@@ -713,8 +750,4 @@ LANGUAGE 'plpgsql'
 VOLATILE
 CALLED ON NULL INPUT
 SECURITY INVOKER
-PARALLEL UNSAFE
 COST 100;
-
-ALTER FUNCTION orga.ft_certificado_planilla_ime (p_administrador integer, p_id_usuario integer, p_tabla varchar, p_transaccion varchar)
-  OWNER TO postgres;

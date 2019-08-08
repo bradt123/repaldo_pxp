@@ -72,6 +72,7 @@ class MODDocumentoWf extends MODbase{
         $this->captura('firma_digital', 'varchar');
         $this->captura('ext_doc', 'varchar');
         $this->captura('check_firm', 'varchar');
+        $this->captura('wfirma_digital','varchar');
 		
 		//Ejecuta la instruccion
 		$this->armarConsulta();
@@ -519,14 +520,15 @@ class MODDocumentoWf extends MODbase{
             $id_documento_wf = $this->objParam->getParametro('id_documento_wf');
             $firma_digital = $this->objParam->getParametro('firma_digital');
             $name_pdf = $this->objParam->getParametro('name_pdf').'.pdf';
-            $this->arreglo['extension'] = "pdf";                                    
+            $this->arreglo['extension'] = "pdf";
+            $this->arreglo['id_documento_wf'] = $id_documento_wf;
             
             $data = base64_decode($pdf);
             $docname = 'archivo_firmado_'.$id_documento_wf.'.pdf';             
             file_put_contents('/tmp/'.$docname,$data);
             $ruta1 ="/tmp/".$docname;
 
-            $file_name = $this->getFileName2($docname, $id_documento_wf, '', false);            
+            $file_name = $this->getFileName2($docname, 'id_documento_wf', '', false);            
 
             $this->aParam->addParametro('id_documento_wf',$id_documento_wf);
             $this->arreglo['id_documento_wf'] = $id_documento_wf;

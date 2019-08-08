@@ -245,9 +245,12 @@ class MODCertificadoPlanilla extends MODbase{
         $this->captura('iniciales','varchar');
         $this->captura('fun_imitido','varchar');
         $this->captura('estado','varchar');
-		$this->captura('nro_item','varchar');
+        $this->captura('nro_item','varchar');
+        $this->captura('id_proceso_wf','integer');
+        $this->captura('id_documento_wf','integer');        
         //Ejecuta la instruccion
         $this->armarConsulta();
+        //echo($this->consulta);exit;
         $this->ejecutarConsulta();
       //var_dump($this->respuesta); exit;
         //Devuelve la respuesta
@@ -310,15 +313,17 @@ class MODCertificadoPlanilla extends MODbase{
             $pdf = $this->objParam->getParametro('pdf');
             $id_documento_wf = $this->objParam->getParametro('id_documento_wf');
             $boa_firm = $this->objParam->getParametro('boa_firm');
-            $this->arreglo['extension'] = "pdf";            
+            $this->arreglo['extension'] = "pdf";
+            $this->arreglo['id_documento_wf'] = $id_documento_wf;            
                     
             $data = base64_decode($pdf);
             $docname = 'archivo_firmado_'.$id_documento_wf.'.pdf';             
-            file_put_contents('/tmp/'.$docname,$data);
-            $ruta1 ="/tmp/".$docname;
 
-            $file_name = $this->getFileName2($docname, $id_documento_wf, '', false);            
-            //var_dump($file_name);exit;
+
+            $file_name = $this->getFileName2($docname, 'id_documento_wf', '', false);            
+            //var_dump($file_name[3]);exit;
+            file_put_contents('/tmp/'.$file_name[3],$data);
+            $ruta1 ="/tmp/".$file_name[3];
 
             $this->aParam->addParametro('id_documento_wf',$id_documento_wf);
             $this->arreglo['id_documento_wf'] = $id_documento_wf;

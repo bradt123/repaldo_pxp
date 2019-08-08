@@ -60,12 +60,14 @@ BEGIN
             tipdw.fecha_mod,
             usu1.cuenta as usr_reg,
             usu2.cuenta as usr_mod,
-                        tipdw.solo_lectura,
-                        array_to_string( tipdw.categoria_documento,'','',''null'')::varchar as categoria_documento,
-                        tipdw.orden,
-                        tipdw.nombre_vista,
-                        tipdw.nombre_archivo_plantilla,
-                        tipdw.esquema_vista
+            tipdw.solo_lectura,
+            array_to_string( tipdw.categoria_documento,'','',''null'')::varchar as categoria_documento,
+            tipdw.orden,
+            tipdw.nombre_vista,
+            tipdw.nombre_archivo_plantilla,
+            tipdw.esquema_vista,
+            tipdw.extension,
+            tipdw.firma_digital
             from wf.ttipo_documento tipdw
             inner join segu.tusuario usu1 on usu1.id_usuario = tipdw.id_usuario_reg
             left join segu.tusuario usu2 on usu2.id_usuario = tipdw.id_usuario_mod
@@ -74,7 +76,7 @@ BEGIN
       --Definicion de la respuesta
       v_consulta:=v_consulta||v_parametros.filtro;
       v_consulta:=v_consulta||' order by ' ||v_parametros.ordenacion|| ' ' || v_parametros.dir_ordenacion || ' limit ' || v_parametros.cantidad || ' offset ' || v_parametros.puntero;
-
+	  raise notice '%',v_consulta;
       --Devuelve la respuesta
       return v_consulta;
             

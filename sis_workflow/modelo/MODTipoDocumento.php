@@ -42,6 +42,7 @@ class MODTipoDocumento extends MODbase{
 		$this->captura('nombre_archivo_plantilla','text');
         $this->captura('esquema_vista','varchar');
         $this->captura('extension','varchar');
+        $this->captura('firma_digital','varchar');
 		
 		//Ejecuta la instruccion
 		$this->armarConsulta();
@@ -72,7 +73,8 @@ class MODTipoDocumento extends MODbase{
 		$this->setParametro('orden','orden','numeric');
         $this->setParametro('nombre_vista','nombre_vista','varchar');
         $this->setParametro('nombre_archivo_plantilla','nombre_archivo_plantilla','text');
-		$this->setParametro('esquema_vista','esquema_vista','varchar');
+        $this->setParametro('esquema_vista','esquema_vista','varchar');
+        $this->setParametro('firma_digital', 'firma_digital', 'varchar');
 
 		//Ejecuta la instruccion
 		$this->armarConsulta();
@@ -104,6 +106,7 @@ class MODTipoDocumento extends MODbase{
         $this->setParametro('nombre_vista','nombre_vista','varchar');
         $this->setParametro('nombre_archivo_plantilla','nombre_archivo_plantilla','text');
         $this->setParametro('esquema_vista','esquema_vista','varchar');
+        $this->setParametro('firma_digital','firma_digital','varchar');
 
 		//Ejecuta la instruccion
 		$this->armarConsulta();

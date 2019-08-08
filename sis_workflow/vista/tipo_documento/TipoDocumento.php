@@ -183,7 +183,7 @@ Phx.vista.TipoDocumento=Ext.extend(Phx.gridInterfaz,{
                 lazyRender:true,
                 mode: 'local',
                 valueField: 'solo_lectura',                  
-              store:['si','no', 'firm']
+              store:['si','no']
             },
             type:'ComboBox',
             //filters:{pfiltro:'tipdw.tipo',type:'string'},
@@ -196,7 +196,32 @@ Phx.vista.TipoDocumento=Ext.extend(Phx.gridInterfaz,{
             grid:true,
             form:true
         },
-		
+        {
+            config:{
+                name: 'firma_digital',
+                fieldLabel: 'Firma Digital',
+                allowBlank: true,
+                anchor: '70%',
+                gwidth: 90,                
+                emptyText:'Tipo...',                
+                typeAhead: true,
+                triggerAction: 'all',
+                lazyRender:true,
+                mode: 'local',
+                valueField: 'firma_digital',                  
+              store:['si','no']
+            },
+            type:'ComboBox',
+            //filters:{pfiltro:'tipdw.tipo',type:'string'},
+            id_grupo:0,
+            filters:{   
+                         type: 'list',
+                         pfiltro:'tipdw.firma_digital',
+                         options: ['si','no'],   
+                    },
+            grid:true,
+            form:true
+        },		
 		{
 			config:{
 				name: 'action',
@@ -401,7 +426,7 @@ Phx.vista.TipoDocumento=Ext.extend(Phx.gridInterfaz,{
 		{name:'id_usuario_mod', type: 'numeric'},
 		{name:'fecha_mod', type: 'date',dateFormat:'Y-m-d H:i:s.u'},
 		{name:'usr_reg', type: 'string'},
-		{name:'usr_mod', type: 'string'},'solo_lectura','categoria_documento','orden',
+		{name:'usr_mod', type: 'string'},'solo_lectura','categoria_documento','orden','firma_digital',
 		{name:'nombre_vista', type: 'string'},
 		{name:'nombre_archivo_plantilla', type: 'string'},
 		{name:'esquema_vista', type: 'string'},

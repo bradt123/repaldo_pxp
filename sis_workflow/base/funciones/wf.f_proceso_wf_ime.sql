@@ -1,5 +1,3 @@
---------------- SQL ---------------
-
 CREATE OR REPLACE FUNCTION wf.f_proceso_wf_ime (
   p_administrador integer,
   p_id_usuario integer,
@@ -90,6 +88,7 @@ DECLARE
      v_res_validacion	text;
      v_valid_campos		boolean;
      v_documentos		record;
+     v_res_val_firma	text;
    
 
 BEGIN
@@ -301,7 +300,7 @@ BEGIN
 
 	elseif(p_transaccion='WF_VERSIGPRO_IME')then   
         begin
-        
+     
         --obtenermos datos basicos
           
           select
@@ -320,13 +319,26 @@ BEGIN
           inner join wf.ttipo_estado te on ew.id_tipo_estado = te.id_tipo_estado
           where pw.id_proceso_wf =  v_parametros.id_proceso_wf;
           
+          
+          
           v_res_validacion = wf.f_valida_cambio_estado(v_registros.id_estado_wf,NULL,NULL,p_id_usuario);
+          
           raise notice 'v_res_validacion %',v_res_validacion;
+          
+          v_res_val_firma = wf.f_valida_firma_digital(v_registros.id_estado_wf,null,null,p_id_usuario);
+          
           IF  (v_res_validacion IS NOT NULL AND v_res_validacion != '') THEN
           		v_resp = pxp.f_agrega_clave(v_resp,'otro_dato','si');
           	  v_resp = pxp.f_agrega_clave(v_resp,'error_validacion_campos','si');
               v_resp = pxp.f_agrega_clave(v_resp,'mensaje','Es necesario registrar los siguientes campos en el formulario: '|| v_res_validacion);
               return v_resp;
+              
+          elseif (v_res_val_firma is not null and v_res_val_firma  != '')then
+          
+              v_resp = pxp.f_agrega_clave(v_resp, 'error_validacion_campos','si');
+              v_resp = pxp.f_agrega_clave(v_resp, 'firma_digital', 'no');
+              v_resp = pxp.f_agrega_clave(v_resp, 'mensaje','Es necesario la firma digital en el/los Documento/s: '|| v_res_val_firma);
+             return v_resp;              
           ELSE
           		v_resp = pxp.f_agrega_clave(v_resp,'otro_dato','si');
           		v_resp = pxp.f_agrega_clave(v_resp,'error_validacion_campos','no');
@@ -393,6 +405,7 @@ BEGIN
                  p_id_usuario); 
           
                 raise notice 'verifica';
+                
                 
                 v_num_estados= array_length(va_id_tipo_estado, 1);
             
@@ -1279,4 +1292,5 @@ LANGUAGE 'plpgsql'
 VOLATILE
 CALLED ON NULL INPUT
 SECURITY INVOKER
+PARALLEL UNSAFE
 COST 100;

@@ -145,8 +145,12 @@ BEGIN
                         dwf.demanda,
                         td.nombre_vista,
                         td.esquema_vista,
-                        td.nombre_archivo_plantilla
-            from wf.tdocumento_wf dwf
+                        td.nombre_archivo_plantilla,
+                        dwf.firma_digital,
+                        td.extension as ext_doc,
+                        dwf.check_firm,
+                        td.firma_digital as wfirma_digital
+            			from wf.tdocumento_wf dwf
                         inner join wf.tproceso_wf pw on pw.id_proceso_wf = dwf.id_proceso_wf
                         inner join wf.ttipo_documento td on td.id_tipo_documento = dwf.id_tipo_documento
                         inner join wf.ttipo_proceso tp on tp.id_tipo_proceso = pw.id_tipo_proceso
@@ -158,7 +162,6 @@ BEGIN
                         left join documento_modificar dm on dm.id_tipo_documento = td.id_tipo_documento
                         left join documento_insertar di on di.id_tipo_documento = td.id_tipo_documento
                         left join documento_eliminar de on de.id_tipo_documento = td.id_tipo_documento
-                        
                         
                 where  ' || v_filtro;
       --raise notice 'zzzzz %',array_length(v_id_tipo_estado_siguiente, 1);

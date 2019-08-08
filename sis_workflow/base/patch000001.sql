@@ -1362,3 +1362,9 @@ ALTER TABLE wf.ttipo_columna
   ADD COLUMN orden INTEGER;
 
 /*****************************F-SCP-JRR-WF-0-30/08/2016*************/
+/*****************************I-SCP-BVP-WF-0-08/07/2019*************/
+
+ALTER TABLE wf.ttipo_documento
+  ADD COLUMN firma_digital varchar(50);
+
+/*****************************F-SCP-BVP-WF-0-08/07/2016*************/

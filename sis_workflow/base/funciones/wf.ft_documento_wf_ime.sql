@@ -4,8 +4,8 @@ CREATE OR REPLACE FUNCTION wf.ft_documento_wf_ime (
   p_tabla varchar,
   p_transaccion varchar
 )
-  RETURNS varchar AS
-  $body$
+RETURNS varchar AS
+$body$
   /**************************************************************************
    SISTEMA:		Work Flow
    FUNCION: 		wf.ft_documento_wf_ime
@@ -237,9 +237,16 @@ CREATE OR REPLACE FUNCTION wf.ft_documento_wf_ime (
           fecha_mod = now(),
           id_usuario_mod = p_id_usuario,
           fecha_upload = now(),
-          id_usuario_upload = p_id_usuario
+          id_usuario_upload = p_id_usuario,
+          nombre_doc = coalesce(v_parametros.name_file,null)
         where id_documento_wf = v_parametros.id_documento_wf;
-
+        
+        if(pxp.f_existe_parametro(p_tabla, 'firma_digital'))then
+        	update wf.tdocumento_wf set 
+            firma_digital = 'si'
+            where id_documento_wf = v_parametros.id_documento_wf;
+        end if;
+        
         if (pxp.f_existe_parametro(p_tabla,'hash_firma')) then
 
           update wf.tdocumento_wf set
@@ -545,7 +552,7 @@ CREATE OR REPLACE FUNCTION wf.ft_documento_wf_ime (
       raise exception '%',v_resp;
 
   END;
-  $body$
+$body$
 LANGUAGE 'plpgsql'
 VOLATILE
 CALLED ON NULL INPUT

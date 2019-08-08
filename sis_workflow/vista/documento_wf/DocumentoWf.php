@@ -345,13 +345,13 @@ Phx.vista.DocumentoWf=Ext.extend(Phx.gridInterfaz,{
         },
         {
             config: {
-                    name: 'check_firm',
+                    name: 'wfirma_digital',
                     fieldLabel: 'Firmar',
                     allowBlank: true,
                     anchor: '50%',
                     gwidth: 50,
                     renderer:function (value, p, record){
-                		if (record.data['solo_lectura'] == 'firm' && !record.data['id_proceso_wf_ori']) {                                                                                      
+                		if (record.data['wfirma_digital'] == 'si' && !record.data['id_proceso_wf_ori']) {                                                                                      
                                 return  String.format('{0}',"<div style='text-align:center'><img border='0' style='-webkit-user-select:auto;cursor:pointer;' title='Subir Archivo' src = '../../../lib/imagenes/icono_awesome/sign.png' align='center' width='30' height='30'></div>");                            
                         }
                     }                                        
@@ -771,7 +771,7 @@ Phx.vista.DocumentoWf=Ext.extend(Phx.gridInterfaz,{
 		
 	    var record = this.store.getAt(rowIndex),
 	        fieldName = grid.getColumnModel().getDataIndex(columnIndex); // Get field name
-
+            console.log('record',record.data);
 	    if (fieldName == 'nro_tramite_ori' && record.data.id_proceso_wf_ori) {
 	    	//open documentos de origen
        		this.loadCheckDocumentosSolWf(record);
@@ -785,13 +785,14 @@ Phx.vista.DocumentoWf=Ext.extend(Phx.gridInterfaz,{
 	       	   this.cambiarMomentoClick(record);
 	       	   		
 	       	}
-	    }else if(fieldName == 'firma_digital') {
+	    }else if(fieldName == 'firma_digital') {            
             ext = record.data.extension;
             tipfile = record.data.ext_doc;
-            firmview = record.data.solo_lectura; 
-            if(( ext.length != 0 || tipfile=='pdf') && (firmview =='firm')) this.VisorArchivo(record);
-        }else if(fieldName == 'check_firm') {
-            if (record.data.solo_lectura == 'firm' && !record.data.id_proceso_wf_ori){
+            firmview = record.data.wfirma_digital; 
+            //if(( ext.length != 0 || tipfile=='pdf') && (firmview =='firm')) this.VisorArchivo(record);
+            if(firmview =='si') this.VisorArchivo(record);
+        }else if(fieldName == 'wfirma_digital') {
+            if (record.data.wfirma_digital == 'si' && !record.data.id_proceso_wf_ori){
                 this.objList.nombre = record.data.nombre_tipo_documento;
                 this.objList.id_documento = record.data.id_documento_wf;
                 this.checkToFirm(record.data);
@@ -926,7 +927,7 @@ Phx.vista.DocumentoWf=Ext.extend(Phx.gridInterfaz,{
             var base64 = window.arrayBufferToBase64(data)
             this.FirmaDigital(base64, this.objList);            
         });
-    },
+    },    
     saveDocumentpdf: function (pdfbase, name_doc, firma){        
         var objres = JSON.parse(name_doc);        
 		Ext.Ajax.request({
@@ -1039,7 +1040,8 @@ Phx.vista.DocumentoWf=Ext.extend(Phx.gridInterfaz,{
         'nombre_vista','esquema_vista','nombre_archivo_plantilla',
         {name:'firma_digital', type: 'string'},
         {name:'ext_doc', type:'string'},
-        {name:'check_firm', type:'string'}         
+        {name:'check_firm', type:'string'},
+        {name:'wfirma_digital',type:'string'}
 	],
 	
     onButtonDel: function(){

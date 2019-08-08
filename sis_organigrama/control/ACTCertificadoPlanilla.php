@@ -127,7 +127,7 @@ class ACTCertificadoPlanilla extends ACTbase{
         $this->objFunc=$this->create('MODCertificadoPlanilla');
         $this->res=$this->objFunc->reporteCertificado($this->objParam);
 
-        $nombreArchivo = uniqid(md5(session_id()).'[Reporte. Certificado]').'.pdf';
+        $nombreArchivo = uniqid(md5(session_id()).'[Reporte.Certificado]').'.pdf';
         $this->objParam->addParametro('orientacion','P');
         $this->objParam->addParametro('tamano','LETTER');
         $this->objParam->addParametro('nombre_archivo',$nombreArchivo);
@@ -195,12 +195,12 @@ class ACTCertificadoPlanilla extends ACTbase{
         $this->objFunc=$this->create('MODCertificadoPlanilla');
         $this->res=$this->objFunc->reporteCertificadoHtml($this->objParam);
 
-        $nombreArchivo = uniqid(md5(session_id()).'[Reporte.Certificado_de_Trabajo]').'.pdf';
+        $nombreArchivo = uniqid(md5(session_id()).'[Reporte.Certificado_de_Trabajo]').'.pdf';        
         $this->objParam->addParametro('orientacion','P');
         $this->objParam->addParametro('tamano','LETTER');
         $this->objParam->addParametro('nombre_archivo',$nombreArchivo);
 
-        $this->objReporte = new RCertificadoTrabajoPdf($this->objParam);
+        $this->objReporte = new RCertificadoTrabajoPdf($this->objParam);        
         $this->objReporte->setDatos($this->res->datos);
         $this->objReporte->generarReporte();
         $this->objReporte->output($this->objReporte->url_archivo,'F');
