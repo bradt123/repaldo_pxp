@@ -106,22 +106,29 @@ header("content-type: text/javascript; charset=UTF-8");
             Ext.Ajax.request({
                 url: '../../sis_organigrama/control/CertificadoPlanilla/consulDocument',
                 params:{id_doc: id_document, id_cert_plan:id_cert_plani},
-                success: this.resulVerify,
+                success:function(resp){
+                    var reg = Ext.util.JSON.decode(Ext.util.Format.trim(resp.responseText));
+                    if(!reg.ROOT.error){
+                        this.reload();
+                    }
+                },
+                //success: this.resulVerify,
                 failure: this.conexionFailure,
                 timeout: this.timeout,
                 scope: this
             })
         },
-        /*verificamos si el documento ya fu procesado y almacenado en Bd 
-        **en caso de no serlo se procede a genera en documento is este no esta en el
-        **sistea de archivos, caso contrario se captura el documento de la ruta de archivos
-        **/
+        /*************************************************************************************
+        verificamos si el documento ya fu procesado y almacenado en Bd
+        **en caso de no serlo, se procede a generar el documento si este no esta en el
+        **sistema de archivos, caso contrario se captura el documento de la ruta de archivos
+        **************************************************************************************/
         resulVerify:function (resp){
             
             var reg = Ext.util.JSON.decode(Ext.util.Format.trim(resp.responseText));
             console.log('v',reg);
             if(reg.ROOT.datos.id_doc_pdf == 'void'){
-                this.pdfGeneradoFirm(this.objRec);
+                //this.pdfGeneradoFirm(this.objRec);
             }else{
                 this.reload();
             }                        
@@ -162,6 +169,7 @@ header("content-type: text/javascript; charset=UTF-8");
         },
 
         VisorArchivo : function(rec) {                         
+            console.log('rec => ',rec);
             var that = this;        
             var action = rec.data.action;
             var ext = rec.data.extension.length;
@@ -215,7 +223,7 @@ header("content-type: text/javascript; charset=UTF-8");
                     timeout:this.timeout,
                     scope:this
                 });                     
-            }else{                
+            }else{
                 var data = "id=" + rec['id_documento_wf'];
                 data += "&extension=" + rec['extension'];
                 data += "&sistema=sis_organigrama";
@@ -243,10 +251,11 @@ header("content-type: text/javascript; charset=UTF-8");
                 that.savebase64DB(buffer, this.id_document_general);
             });            
         },
-        savebase64DB:function(buffer, id_docw){            
+        savebase64DB:function(buffer, id_docw){
+            var id_certificado_plani = this.objRec.id_certificado_planilla;
             Ext.Ajax.request({
                     url:'../../sis_organigrama/control/CertificadoPlanilla/saveDocumentoToSing',
-                    params:{'pdf':buffer, codigo:'certificado_trabajo_sis_orga', 'id_documento_wf':id_docw},
+                    params:{'pdf':buffer, codigo:'certificado_trabajo_sis_orga', 'id_documento_wf':id_docw, 'id_certificado_planilla':id_certificado_plani},
                     success: this.respuesta,
                     failure: this.conexionFailure,
                     timeout:this.timeout,

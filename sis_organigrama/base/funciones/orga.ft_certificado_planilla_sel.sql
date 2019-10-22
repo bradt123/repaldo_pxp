@@ -246,7 +246,7 @@ BEGIN
                         '''||COALESCE (v_iniciales,'NA')||'''::varchar as iniciales,
                         '''||COALESCE (v_fun_emetido,'NA')||'''::varchar as fun_imitido,
                         cpla.estado,
-                        fca.codigo as nro_item,
+                        ca.codigo as nro_item,
         				cpla.id_proceso_wf,
         				dw.id_documento_wf
                         from orga.tcertificado_planilla cpla
@@ -254,7 +254,8 @@ BEGIN
                         inner join orga.tuo_funcionario fuo on fuo.id_uo_funcionario = cpla.id_funcionario
                         inner join orga.vfuncionario fun on fun.id_funcionario = fuo.id_funcionario
                         inner join segu.tpersona per on per.id_persona = fun.id_persona
-                        inner join orga.vfuncionario_cargo fca on fca.id_uo_funcionario = fun.id_funcionario 
+                        inner join orga.vfuncionario_cargo fca on fca.id_uo_funcionario = cpla.id_funcionario
+                        inner join orga.tcargo ca on ca.id_cargo = fca.id_cargo 
                         inner join wf.testado_wf esw on esw.id_estado_wf = cpla.id_estado_wf 
                         inner join orga.tuo ger ON ger.id_uo = orga.f_get_uo_gerencia(fuo.id_uo, NULL::integer, NULL::date)
                         inner join wf.tdocumento_wf dw on dw.id_proceso_wf = cpla.id_proceso_wf and dw.id_estado_ini is not null 
@@ -321,7 +322,7 @@ BEGIN
                         '''||COALESCE (v_iniciales,'NA')||'''::varchar as iniciales,
                         '''||COALESCE (v_fun_emetido,'NA')||'''::varchar as fun_imitido,
                         cpla.estado,
-                        fca.codigo as nro_item,
+                        ca.codigo as nro_item,
         				cpla.id_proceso_wf,
         				dw.id_documento_wf
                         from orga.tcertificado_planilla cpla
@@ -329,7 +330,8 @@ BEGIN
                         inner join orga.tuo_funcionario fuo on fuo.id_uo_funcionario = cpla.id_funcionario
                         inner join orga.vfuncionario fun on fun.id_funcionario = fuo.id_funcionario
                         inner join segu.tpersona per on per.id_persona = fun.id_persona
-                        inner join orga.vfuncionario_cargo fca on fca.id_uo_funcionario = fun.id_funcionario 
+                        inner join orga.vfuncionario_cargo fca on fca.id_uo_funcionario = cpla.id_funcionario 
+                        inner join orga.tcargo ca on ca.id_cargo = fca.id_cargo 
                         inner join wf.testado_wf esw on esw.id_estado_wf = cpla.id_estado_wf 
                         inner join orga.tuo ger ON ger.id_uo = orga.f_get_uo_gerencia(fuo.id_uo, NULL::integer, NULL::date)
                         inner join wf.tdocumento_wf dw on dw.id_proceso_wf = cpla.id_proceso_wf and dw.id_estado_ini is not null 
@@ -440,4 +442,8 @@ LANGUAGE 'plpgsql'
 VOLATILE
 CALLED ON NULL INPUT
 SECURITY INVOKER
+PARALLEL UNSAFE
 COST 100;
+
+ALTER FUNCTION orga.ft_certificado_planilla_sel (p_administrador integer, p_id_usuario integer, p_tabla varchar, p_transaccion varchar)
+  OWNER TO postgres;

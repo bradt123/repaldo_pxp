@@ -123,7 +123,8 @@ BEGIN
                       fid.pdf_base64,
                       fid.id_documento_wf
 				    from firmdig.tdocumento_firm_dig fid
-                    where fid.codigo = '''||v_parametros.codigo||'''';
+                    where fid.estado_reg = ''activo''
+                    and fid.codigo = '''||v_parametros.codigo||'''';
           
 		--Devuelve la respuesta
         raise notice '%',v_consulta;

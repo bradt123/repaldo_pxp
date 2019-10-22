@@ -632,13 +632,13 @@ BEGIN
      /*********************************
  	#TRANSACCION:  'OR_SIGUE_EMIFIRM'
  	#DESCRIPCION:	Siguiente estado certificado de trabajo firmado digitalmente
- 	#AUTOR:		
+ 	#AUTOR:		BVP
  	#FECHA:		
 	***********************************/
     elseif(p_transaccion='OR_SIGUE_EMIFIRM') then
     	begin
 
-          --recupera el registro de la CVPN          
+          --recupera el registro          
           select pla.*
           into v_registo
           from wf.tdocumento_wf dw 
@@ -686,11 +686,17 @@ BEGIN
                   v_tipo_noti = 'notificacion';
                   v_titulo  = 'Notificacion';
              END IF;
+             
+             select fun.id_funcionario
+             		into v_id_funcionario 
+             from orga.vfuncionario fun
+			 inner join segu.tusuario us on us.id_persona = fun.id_persona
+             where us.id_usuario = p_id_usuario;
 
 
              -- hay que recuperar el supervidor que seria el estado inmediato...
             	v_id_estado_actual =  wf.f_registra_estado_wf(898,
-                                                             56,
+                                                             v_id_funcionario,
                                                              v_id_estado_wf,
                                                              v_registo.id_proceso_wf,
                                                              p_id_usuario,
@@ -750,4 +756,8 @@ LANGUAGE 'plpgsql'
 VOLATILE
 CALLED ON NULL INPUT
 SECURITY INVOKER
+PARALLEL UNSAFE
 COST 100;
+
+ALTER FUNCTION orga.ft_certificado_planilla_ime (p_administrador integer, p_id_usuario integer, p_tabla varchar, p_transaccion varchar)
+  OWNER TO postgres;

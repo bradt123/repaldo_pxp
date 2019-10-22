@@ -11,7 +11,7 @@ header("content-type: text/javascript; charset=UTF-8");
 ?>
 <style>
 .button-firm-digital{    
-    background-image: url('../../../lib/imagenes/icono_awesome/sign.png'); 
+    background-image: url('../../../lib/imagenes/icono_awesome/signbn.png'); 
     background-repeat: no-repeat; 
     filter: saturate(250%);
     background-size: 55%;    

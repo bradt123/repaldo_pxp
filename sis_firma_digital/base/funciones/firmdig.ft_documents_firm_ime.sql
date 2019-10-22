@@ -30,7 +30,7 @@ DECLARE
 	v_nombre_funcion        text;
 	v_mensaje_error         text;
 	v_id_documento_dig		integer;
-    v_id_dwf				record;
+    v_dwf					record;
 			    
 BEGIN
 
@@ -94,18 +94,36 @@ BEGIN
 	elsif(p_transaccion='FIRMDIG_VERIFY_IME')then
 
 		begin
-				select fid.id_documento_wf
+				select fid.id_documento_wf, fid.estado_reg
                     into 
-	                    v_id_dwf
+	                    v_dwf
                 from firmdig.tdocumento_firm_dig fid
                 where fid.id_documento_wf = v_parametros.id_doc;
                 
-            if v_id_dwf is not null then 
-              delete from firmdig.tdocumento_firm_dig 
-              where id_documento_wf = v_id_dwf.id_documento_wf;
+            if v_dwf.estado_reg = 'activo' then 
+            
+	         update firmdig.tdocumento_firm_dig set 
+             estado_reg = 'inactivo'
+             where id_documento_wf = v_dwf.id_documento_wf;
+             
+             update orga.tcertificado_planilla set 
+             impreso = 'no'
+             where id_certificado_planilla = v_parametros.id_cert_plan;
+             
+             /* delete from firmdig.tdocumento_firm_dig 
+              where id_documento_wf = v_id_dwf.id_documento_wf;*/
               v_resp = pxp.f_agrega_clave(v_resp,'otro','no');              
-              v_resp = pxp.f_agrega_clave(v_resp,'id_doc_pdf',v_id_dwf.id_documento_wf::varchar);              
+              v_resp = pxp.f_agrega_clave(v_resp,'id_doc_pdf',v_dwf.id_documento_wf::varchar);              
 			else 
+            
+	         update firmdig.tdocumento_firm_dig set 
+             estado_reg = 'activo'
+             where id_documento_wf = v_dwf.id_documento_wf;
+             
+             update orga.tcertificado_planilla set 
+             impreso = 'si'
+             where id_certificado_planilla = v_parametros.id_cert_plan;
+                          
               v_resp = pxp.f_agrega_clave(v_resp,'otro','si');
            	  v_resp = pxp.f_agrega_clave(v_resp,'id_doc_pdf','void'); 
 			end if;                              
